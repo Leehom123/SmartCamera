@@ -1,0 +1,25 @@
+<resources>
+    <string name="app_name">SmartCamera</string>
+
+    <string name="picture">拍照</string>
+    <string name="need_permissions">该App需要打开摄像头拍照，并保存到设备上</string>
+    <string name="sorry">很抱歉，由于未被赋予相应权限，“Camera”停止运行</string>
+    <string name="failed">配置失败</string>
+    <string name="save_failed">保存失败</string>
+    <string name="Auto">AUTO</string>
+    <string name="style">模式</string>
+    <string name="wb">WB</string>
+    <string name="ISO">ISO</string>
+    <string name="setting">设置</string>
+    <string name="zipai">自拍</string>
+    <string name="vedio">录像</string>
+    <string name="disp">DISP</string>
+    <string name="ev">EV</string>
+    <string name="xiangce">相册</string>
+    <string name="zoom">ZOOM</string>
+    <string name="record">Record</string>
+    <string name="stop">Stop</string>
+    <string name="description_info">Info</string>
+    <string name="permission_request">This sample needs permission for camera and audio recording.</string>
+    <string name="camera_error">This device doesn\'t support Camera2 API.</string>
+</resources>
