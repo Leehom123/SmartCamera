@@ -12,6 +12,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <TextView
+            android:id="@+id/tv_type"
             android:text="模式"
             android:textColor="#FFFFFF"
             android:layout_width="wrap_content"
@@ -41,6 +42,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <TextView
+            android:id="@+id/tv_type_jizhun"
             android:text="基准"
             android:textColor="#FFFFFF"
             android:layout_width="wrap_content"
@@ -56,6 +58,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <TextView
+            android:id="@+id/tv_type_kuaimen"
             android:text="快门"
             android:textColor="#FFFFFF"
             android:layout_width="wrap_content"
@@ -72,6 +75,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <TextView
+            android:id="@+id/tv_type_buchang"
             android:text="补偿"
             android:textColor="#FFFFFF"
             android:layout_width="wrap_content"

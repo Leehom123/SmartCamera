@@ -113,7 +113,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
     private ImageButton btn_luxiang;
     private ImageButton btn_xiangce;
     private ImageButton btn_disp;
-    int cTime = 1, cTime_cl, cTime_fd, cTime_splash, seekTime = 0, seekTime2 = 0;
+    int cTime = 1, cTime_cl, cTime_fd, cTime_splash,cTime_language,cTime_dir, seekTime = 0, seekTime2 = 0;
     private RelativeLayout layout_setting_include;
     private Button close_setting;
     private TextView tv_yanchi;
@@ -206,6 +206,28 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
     private TextView setting_second_state_bluetooth;
     private MediaRecorder mMediaRecorder;
     private Button luxiang_stop;
+    private RelativeLayout layout_setting_language_include;
+    private TextView setting_second_state_language;
+    private Button lock_btn;
+    private TextView tv_type;
+    private TextView tv_type_jizhun;
+    private TextView tv_type_kuaimen;
+    private TextView tv_type_buchang;
+    private TextView tv_wb_mode;
+    private TextView tv_wb_mode_sewen;
+    private TextView tv_wb_mode_sediao;
+    private TextView tv_power;
+    private TextView setting_name_bluetooth;
+    private TextView setting_name_video;
+    private TextView setting_name_handdirection;
+    private TextView setting_name_fangdou;
+    private TextView setting_name_splash;
+    private TextView setting_name_powertype;
+    private TextView setting_name_cameraline;
+    private TextView tv_setting_timeout;
+    private TextView setting_second_state_dir;
+    private RelativeLayout layout_setting_handdirection_include;
+    private TextView setting_second_state_power_type;
 
 
     @Override
@@ -257,10 +279,12 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
         automatic = (Button) findViewById(R.id.automatic);
         type_matul_btn = (Button) findViewById(R.id.type_matul_btn);
         type_automatic = (Button) findViewById(R.id.type_automatic);
+        lock_btn = (Button) findViewById(R.id.lock_btn);
         btn_xiangji = (ImageButton) findViewById(R.id.xiangji);
         rl_top = (RelativeLayout) findViewById(R.id.rl_top);
         rl_bottom = (RelativeLayout) findViewById(R.id.rl_bottom);
         power_text = (TextView) findViewById(R.id.power_text);
+        tv_power = (TextView)findViewById(R.id.tv_power);
         romsize_text = (TextView) findViewById(R.id.romsize_text);
         btn_fankui = (Button) findViewById(R.id.fankui);
         rl_setting = (RelativeLayout) findViewById(R.id.rl_setting);
@@ -272,6 +296,26 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
         sb_kuaimen = (BanSeekBar) findViewById(R.id.kuaimen);
         sb_buchang_type = (BanSeekBar) findViewById(R.id.buchang);
         setting_second_state_bluetooth = (TextView) findViewById(R.id.setting_second_state_bluetooth);
+        layout_setting_language_include = (RelativeLayout)findViewById(R.id.layout_setting_language_include);
+        setting_second_state_language = (TextView)findViewById(R.id.setting_second_state_language);
+        tv_type = (TextView)findViewById(R.id.tv_type);
+        tv_type_jizhun = (TextView)findViewById(R.id.tv_type_jizhun);
+        tv_type_kuaimen = (TextView)findViewById(R.id.tv_type_kuaimen);
+        tv_type_buchang = (TextView)findViewById(R.id.tv_type_buchang);
+        tv_wb_mode = (TextView)findViewById(R.id.tv_wb_mode);
+        tv_wb_mode_sewen = (TextView)findViewById(R.id.tv_wb_mode_sewen);
+        tv_wb_mode_sediao = (TextView)findViewById(R.id.tv_wb_mode_sediao);
+        setting_name_bluetooth = (TextView)findViewById(R.id.setting_name_bluetooth);
+        setting_name_video = (TextView)findViewById(R.id.setting_name_video);
+        setting_name_handdirection = (TextView)findViewById(R.id.setting_name_handdirection);
+        setting_name_fangdou = (TextView)findViewById(R.id.setting_name_fangdou);
+        setting_name_splash = (TextView)findViewById(R.id.setting_name_splash);
+        setting_name_powertype = (TextView)findViewById(R.id.setting_name_powertype);
+        setting_name_cameraline = (TextView)findViewById(R.id.setting_name_cameraline);
+        tv_setting_timeout = (TextView)findViewById(R.id.tv_setting_timeout);
+        setting_second_state_dir = (TextView)findViewById(R.id.setting_second_state_dir);
+        layout_setting_handdirection_include = (RelativeLayout)findViewById(R.id.layout_setting_handdirection_include);
+        setting_second_state_power_type = (TextView)findViewById(R.id.setting_second_state_power_type);
 
         sb_ev.setMax(100);
         sb_zoom.setMax(100);
@@ -280,6 +324,8 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
         valueAE = 0;
         valueISO = 0;
         //button点击事件
+        layout_setting_handdirection_include.setOnClickListener(this);
+        layout_setting_language_include.setOnClickListener(this);
         btn_luxiang.setOnClickListener(this);
         luxiang_stop.setOnClickListener(this);
         fangdou_include.setOnClickListener(this);
@@ -326,7 +372,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_REFRESH_UI:
-                    power_text.setText("电量：" + msg.obj.toString() + "%");
+                    power_text.setText( msg.obj.toString() + "%");
                     break;
             }
         }
@@ -761,33 +807,63 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                 break;
             case R.id.style:
                 layout_type_include.setVisibility(View.VISIBLE);
+                btn_wb.setClickable(false);
+                btn_setting.setClickable(false);
+                btn_zipai.setClickable(false);
+                btn_xiangce.setClickable(false);
+                btn_luxiang.setClickable(false);
+                mButton.setClickable(false);
+                btn_iso.setClickable(false);
                 break;
             case R.id.close_type:
                 layout_type_include.setVisibility(View.INVISIBLE);
+                btn_wb.setClickable(true);
+                btn_setting.setClickable(true);
+                btn_zipai.setClickable(true);
+                btn_xiangce.setClickable(true);
+                btn_luxiang.setClickable(true);
+                mButton.setClickable(true);
+                btn_iso.setClickable(true);
                 break;
             case R.id.iso:
                 layout_iso_include.setVisibility(View.VISIBLE);
                 btn_wb.setClickable(false);
+                btn_style.setClickable(false);
                 btn_setting.setClickable(false);
                 btn_zipai.setClickable(false);
+                btn_xiangce.setClickable(false);
+                btn_luxiang.setClickable(false);
+                mButton.setClickable(false);
                 break;
             case R.id.close_iso:
                 layout_iso_include.setVisibility(View.GONE);
                 btn_wb.setClickable(true);
+                btn_style.setClickable(true);
                 btn_setting.setClickable(true);
                 btn_zipai.setClickable(true);
+                btn_xiangce.setClickable(true);
+                btn_luxiang.setClickable(true);
+                mButton.setClickable(true);
                 break;
             case R.id.wb:
                 layout_awb_include.setVisibility(View.VISIBLE);
                 btn_iso.setClickable(false);
+                btn_style.setClickable(false);
                 btn_setting.setClickable(false);
                 btn_zipai.setClickable(false);
+                btn_xiangce.setClickable(false);
+                btn_luxiang.setClickable(false);
+                mButton.setClickable(false);
                 break;
             case R.id.close_awb:
                 layout_awb_include.setVisibility(View.GONE);
                 btn_iso.setClickable(true);
+                btn_style.setClickable(true);
                 btn_setting.setClickable(true);
                 btn_zipai.setClickable(true);
+                btn_xiangce.setClickable(true);
+                btn_luxiang.setClickable(true);
+                mButton.setClickable(true);
                 break;
             case R.id.zipai:
                 if (Utils.isFastClick()) {
@@ -817,6 +893,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                     btn_xiangji.setVisibility(View.INVISIBLE);
                     power_text.setVisibility(View.INVISIBLE);
                     romsize_text.setVisibility(View.INVISIBLE);
+                    tv_power.setVisibility(View.INVISIBLE);
                     rl_bottom.setBackground(null);
                     rl_top.setBackground(null);
                 } else {
@@ -830,6 +907,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                     btn_xiangji.setVisibility(View.VISIBLE);
                     power_text.setVisibility(View.VISIBLE);
                     romsize_text.setVisibility(View.VISIBLE);
+                    tv_power.setVisibility(View.VISIBLE);
                     rl_bottom.setBackgroundColor(0xff2E2E2E);
                     rl_top.setBackgroundColor(0xff2E2E2E);
                 }
@@ -839,17 +917,30 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                 layout_setting_include.setVisibility(View.VISIBLE);
                 btn_wb.setClickable(false);
                 btn_iso.setClickable(false);
+                btn_style.setClickable(false);
                 btn_zipai.setClickable(false);
+                btn_xiangce.setClickable(false);
+                btn_luxiang.setClickable(false);
+                mButton.setClickable(false);
                 String text = tv_yanchi.getText().toString();
                 sleepTime = Integer.parseInt(text);
                 break;
             case R.id.layout_setting_fangdou_include:
                 cTime_fd++;
                 if (cTime_fd % 2 == 1) {
-                    text_fangdou.setText("已打开");
+                    if (cTime_language%2==1){
+                        text_fangdou.setText("opened");
+                    }else {
+                        text_fangdou.setText("已开启");
+                    }
                     mPreviewRequestBuilder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CameraMetadata.LENS_OPTICAL_STABILIZATION_MODE_ON);
                 } else {
-                    text_fangdou.setText("已关闭");
+
+                    if (cTime_language%2==1){
+                        text_fangdou.setText("closed");
+                    }else {
+                        text_fangdou.setText("已关闭");
+                    }
                     mPreviewRequestBuilder.set(CaptureRequest.LENS_OPTICAL_STABILIZATION_MODE, CameraMetadata.LENS_OPTICAL_STABILIZATION_MODE_OFF);
                 }
                 break;
@@ -857,21 +948,61 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                 cTime_cl++;
                 if (cTime_cl % 2 == 1) {
                     camera_line.setVisibility(View.VISIBLE);
-                    camera_line_text.setText("已打开");
+                    if (cTime_language%2==1){
+                        camera_line_text.setText("opened");
+                    }else {
+                        camera_line_text.setText("已打开");
+                    }
+
                 } else {
                     camera_line.setVisibility(View.GONE);
-                    camera_line_text.setText("已关闭");
+                    if (cTime_language%2==1){
+                        camera_line_text.setText("closed");
+                    }else {
+                        camera_line_text.setText("已关闭");
+                    }
                 }
+                break;
+            case R.id.layout_setting_handdirection_include:
+                cTime_dir++;
+                if (cTime_dir%2==1){
+                    if (cTime_language%2==1){
+                        setting_second_state_dir.setText("opposite direction");
+                    }else {
+                        setting_second_state_dir.setText("反向");
+                    }
+                }else{
+                    if (cTime_language%2==1){
+                        setting_second_state_dir.setText("forward direction");
+                    }else {
+                        setting_second_state_dir.setText("正向");
+                    }
+                }
+                break;
+            case R.id.layout_setting_vedio_include:
+
                 break;
             case R.id.layout_setting_splash_include://闪光灯设置
                 if (cTime_splash % 3 == 0) {//已开启
-                    splash_text.setText("已开启");
+                    if (cTime_language%2==1){
+                        splash_text.setText("opened");
+                    }else {
+                        splash_text.setText("已开启");
+                    }
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON);
                 } else if (cTime_splash % 3 == 1) {//自动
-                    splash_text.setText("自动");
+                    if (cTime_language%2==1){
+                        splash_text.setText("auto");
+                    }else {
+                        splash_text.setText("自动");
+                    }
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON_AUTO_FLASH);
                 } else {//已关闭
-                    splash_text.setText("已关闭");
+                    if (cTime_language%2==1){
+                        splash_text.setText("closed");
+                    }else {
+                        splash_text.setText("已关闭");
+                    }
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON);
                     mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
                 }
@@ -879,9 +1010,13 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                 break;
             case R.id.close_setting:
                 layout_setting_include.setVisibility(View.GONE);
-                btn_iso.setClickable(true);
                 btn_wb.setClickable(true);
+                btn_iso.setClickable(true);
+                btn_style.setClickable(true);
                 btn_zipai.setClickable(true);
+                btn_xiangce.setClickable(true);
+                btn_luxiang.setClickable(true);
+                mButton.setClickable(true);
                 break;
             case R.id.btn_add:
                 if (sleepTime < 10) {
@@ -948,6 +1083,128 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                 stopRecordingVideo();
                 btn_luxiang.setVisibility(View.VISIBLE);
                 luxiang_stop.setVisibility(View.GONE);
+                break;
+            case R.id.layout_setting_language_include:
+                cTime_language++;
+                if (cTime_language%2==1){
+                    setting_second_state_language.setText("English");
+                    //小太阳
+                    tv_type.setText("Mode");
+                    tv_type_jizhun.setText("Benchmark");
+                    tv_type_kuaimen.setText("Shutter");
+                    tv_type_buchang.setText("LightCompensation");
+                    type_automatic.setText("auto");
+                    type_matul_btn.setText("matul");
+                    lock_btn.setText("lock");
+                    btn_close_type.setText("close");
+                    //WB
+                    tv_wb_mode.setText("Mode");
+                    tv_wb_mode_sewen.setText("ColorTemperature");
+                    tv_wb_mode_sediao.setText("Tone");
+                    close_awb.setText("close");
+                    automatic.setText("auto");
+                    matul_btn.setText("matul");
+                    //iso
+                    close_iso.setText("close");
+                    //电量
+                    tv_power.setText("Power：");
+                    //设置
+                    setting_name_bluetooth.setText("BlueTooth");
+                    setting_name_video.setText("VideoSetting");
+                    setting_name_handdirection.setText("Handwheel Direction");
+                    setting_name_fangdou.setText("Anti-shake");
+                    setting_name_splash.setText("Splash");
+                    setting_name_powertype.setText("Power Type");
+                    setting_name_cameraline.setText("Guide");
+                    tv_setting_timeout.setText("Time-lapse photography");
+                    close_setting.setText("close");
+                    if (splash_text.getText().equals("已关闭")){
+                        splash_text.setText("closed");
+                    }else if (splash_text.getText().equals("自动")){
+                        splash_text.setText("auto");
+                    }else {
+                        splash_text.setText("opened");
+                    }
+                    if (camera_line_text.getText().equals("已开启")){
+                        camera_line_text.setText("opened");
+                    }else{
+                        camera_line_text.setText("closed");
+                    }
+                    if (text_fangdou.getText().equals("已开启")){
+                        text_fangdou.setText("opened");
+                    }else {
+                        text_fangdou.setText("closed");
+                    }
+                    if (setting_second_state_dir.getText().equals("反向")){
+                        setting_second_state_dir.setText("opposite direction");
+                    }else {
+                        setting_second_state_dir.setText("forward direction");
+                    }
+                    if (setting_second_state_bluetooth.getText().equals("未连接")){
+                        setting_second_state_bluetooth.setText("disconnected");
+                    }else{
+                        setting_second_state_bluetooth.setText("connected");
+                    }
+                }else {
+                    setting_second_state_language.setText("中文");
+                    //小太阳
+                    tv_type.setText("模式");
+                    tv_type_jizhun.setText("基准");
+                    tv_type_kuaimen.setText("快门");
+                    tv_type_buchang.setText("补偿");
+                    type_automatic.setText("自动");
+                    type_matul_btn.setText("手动");
+                    lock_btn.setText("锁定");
+                    btn_close_type.setText("关闭");
+                    //WB
+                    tv_wb_mode.setText("模式");
+                    tv_wb_mode_sewen.setText("色温");
+                    tv_wb_mode_sediao.setText("色调");
+                    close_awb.setText("关闭");
+                    automatic.setText("自动");
+                    matul_btn.setText("手动");
+                    //iso
+                    close_iso.setText("关闭");
+                    //电量
+                    tv_power.setText("电量：");
+                    //设置
+                    setting_name_bluetooth.setText("蓝牙");
+                    setting_name_video.setText("视频设置");
+                    setting_name_handdirection.setText("手轮方向");
+                    setting_name_fangdou.setText("防抖");
+                    setting_name_splash.setText("闪光灯");
+                    setting_name_powertype.setText("电池类型");
+                    setting_name_cameraline.setText("辅助线");
+                    tv_setting_timeout.setText("延时摄影");
+                    close_setting.setText("关闭");
+                    if (splash_text.getText().equals("closed")){
+                        splash_text.setText("已关闭");
+                    }else if (splash_text.getText().equals("auto")){
+                        splash_text.setText("自动");
+                    }else {
+                        splash_text.setText("已开启");
+                    }
+                    if (camera_line_text.getText().equals("opened")){
+                        camera_line_text.setText("已开启");
+                    }else{
+                        camera_line_text.setText("已关闭");
+                    }
+                    if (text_fangdou.getText().equals("opened")){
+                        text_fangdou.setText("已开启");
+                    }else {
+                        text_fangdou.setText("已关闭");
+                    }
+                    if (setting_second_state_dir.getText().equals("opposite direction")){
+                        setting_second_state_dir.setText("反向");
+                    }else {
+                        setting_second_state_dir.setText("正向");
+                    }
+                    if (setting_second_state_bluetooth.getText().equals("connected")){
+                        setting_second_state_bluetooth.setText("已连接");
+                    }else{
+                        setting_second_state_bluetooth.setText("未连接");
+                    }
+                }
                 break;
             default:
                 if (!rl_setting.hasFocus()) {
@@ -1092,6 +1349,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
         registerReceiver(mBroadcastReceiver, filter);
         Timer timer = new Timer();
         TimerTask timerTask = new TimerTask() {
+            private int power;
             private int progress, progress1;
             private int anTime, anTime1;
             private String status;
@@ -1103,7 +1361,20 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        setting_second_state_bluetooth.setText(status);
+                        if (cTime_language%2==1){
+                            if (status.equals("已连接")){
+                                setting_second_state_bluetooth.setText("connected");
+                            }else {
+                                setting_second_state_bluetooth.setText("disconnected");
+                            }
+                        }else {
+                            if (status.equals("已连接")){
+                                setting_second_state_bluetooth.setText("已连接");
+                            }else {
+                                setting_second_state_bluetooth.setText("未连接");
+                            }
+                        }
+
                     }
                 });
                 SharedPreferences preferences_key = getSharedPreferences("Key", Context.MODE_PRIVATE);
@@ -1203,7 +1474,16 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                     edit.putInt("Key", 0);
                     edit.commit();
                 }
+                SharedPreferences preferences_Power = getSharedPreferences("Power", Context.MODE_PRIVATE);
+                power = preferences_Power.getInt("power", 0);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        power_text.setText(power +"%");
+                    }
+                });
             }
+
         };
         timer.schedule(timerTask, 500, 500);
     }

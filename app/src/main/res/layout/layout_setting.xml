@@ -45,6 +45,7 @@
                 android:id="@+id/layout_setting_camerline_include"
                 layout="@layout/layout_setting_cameraline"></include>
             <TextView
+                android:id="@+id/tv_setting_timeout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="#FFFFFF"

@@ -156,12 +156,18 @@
                 android:background="@drawable/icon_5_2x"
                  />
             <TextView
+                android:id="@+id/tv_power"
                 android:textColor="#FFFFFF"
                 android:layout_marginLeft="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="电量："/>
+            <TextView
+                android:textColor="#FFFFFF"
                 android:id="@+id/power_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="电量：80%"
+                android:text="80%"
                 />
         </LinearLayout>
 

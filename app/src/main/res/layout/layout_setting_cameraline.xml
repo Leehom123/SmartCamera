@@ -10,7 +10,7 @@
         <TextView
             android:text="辅助线"
             android:textColor="#FFFFFF"
-            android:id="@+id/setting_name"
+            android:id="@+id/setting_name_cameraline"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             />

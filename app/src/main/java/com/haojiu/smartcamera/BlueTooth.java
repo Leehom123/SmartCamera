@@ -578,6 +578,10 @@ public class BlueTooth extends Activity {
                 {
                     byte[] x = smsg.getBytes();
                     if(smsg.length()==1) {
+                        SharedPreferences sp=getSharedPreferences("Power",Context.MODE_PRIVATE);
+                        SharedPreferences.Editor edit = sp.edit();
+                        edit.putInt("power",x[0]);
+                        edit.commit();
                     }
                     readIdx++;
                     BlueTooth.read(readIdx);
