@@ -6,6 +6,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -52,6 +54,7 @@ import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.KeyEvent;
 import android.view.Surface;
+import android.view.SurfaceHolder;
 import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
@@ -228,6 +231,12 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
     private TextView setting_second_state_dir;
     private RelativeLayout layout_setting_handdirection_include;
     private TextView setting_second_state_power_type;
+    private RelativeLayout layout_setting_vedio_include;
+    private Range<Integer>[] exposeFPSRange;
+    private ArrayList<Integer> list;
+    private int length;
+    private ArrayList<Integer> fbl_list;
+    private TextView setting_second_state_vedio;
 
 
     @Override
@@ -316,6 +325,8 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
         setting_second_state_dir = (TextView)findViewById(R.id.setting_second_state_dir);
         layout_setting_handdirection_include = (RelativeLayout)findViewById(R.id.layout_setting_handdirection_include);
         setting_second_state_power_type = (TextView)findViewById(R.id.setting_second_state_power_type);
+        layout_setting_vedio_include = (RelativeLayout)findViewById(R.id.layout_setting_vedio_include);
+        setting_second_state_vedio = (TextView)findViewById(R.id.setting_second_state_vedio);
 
         sb_ev.setMax(100);
         sb_zoom.setMax(100);
@@ -324,6 +335,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
         valueAE = 0;
         valueISO = 0;
         //button点击事件
+        layout_setting_vedio_include.setOnClickListener(this);
         layout_setting_handdirection_include.setOnClickListener(this);
         layout_setting_language_include.setOnClickListener(this);
         btn_luxiang.setOnClickListener(this);
@@ -412,6 +424,40 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
             StreamConfigurationMap map = characteristics
                     .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
+            StreamConfigurationMap streamConfigurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            Size[] outputSizes = streamConfigurationMap.getOutputSizes(SurfaceHolder.class);
+            HashSet<Integer> fbl=new HashSet<>();
+            if (outputSizes != null) {
+                for (Size sz : outputSizes) {
+                    int height1 = sz.getHeight();
+                    int width1 = sz.getWidth();
+                    if(height1>=720){
+                        height1=720;
+                    }else if (height1<720&&height1>=480){
+                        height1=480;
+                    }else if (height1<480){
+                        height1=240;
+                    }
+                    fbl.add(height1);
+                    Log.e("zx",width1+"*"+height1);
+                }
+                fbl_list = new ArrayList<>();
+                Iterator<Integer> iterator = fbl.iterator();
+                while (iterator.hasNext()){
+                    Integer next = iterator.next();
+                    fbl_list.add(next);
+                }
+            }
+            //视频FPS值
+            exposeFPSRange = characteristics.get(CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES);
+            list = new ArrayList<Integer>();
+            length = exposeFPSRange.length;
+            for (int i = 0; i< length; i++){
+                Range<Integer> integerRange = exposeFPSRange[i];
+                Integer upper = integerRange.getUpper();
+                Integer lower = integerRange.getLower();
+                list.add(upper);
+            }
             //打开Camera
             cameraManager.openCamera(mCameraId, mCameraDeviceStateCallback, mBackgroundHandler);
             configureTransform(width, height);
@@ -552,6 +598,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
             for (String cameraId : cameraIds) {
                 //获得指定CameraId相机设备的属性
                 CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
+
                 //获得摄像头朝向
                 Integer facing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
                 //若是前置摄像头，不做任何操作
@@ -980,6 +1027,9 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                 }
                 break;
             case R.id.layout_setting_vedio_include:
+                startActivityForResult(new Intent(CameraActivity.this,VideoSettingActivity.class).putIntegerArrayListExtra("FPS",list)
+                .putExtra("length",length).putIntegerArrayListExtra("fbl",fbl_list),0);
+
 
                 break;
             case R.id.layout_setting_splash_include://闪光灯设置
@@ -1214,9 +1264,20 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
         }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode){
+            case 0:
+                String fbl_fps = data.getStringExtra("FBL_FPS");
+                setting_second_state_vedio.setText(fbl_fps);
+                break;
+        }
+    }
+
     /*
-    * 转换摄像头
-     */
+        * 转换摄像头
+         */
     private void changeCamera() {
         PermissionUtil permissionUtil = new PermissionUtil(this);
         //若没有权限

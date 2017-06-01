@@ -39,6 +39,7 @@
         <activity android:name=".YuLanActivity"></activity>
         <activity android:name=".VideoActivity"></activity>
         <activity android:name=".JieVideoPlayerActivity"></activity>
+        <activity android:name=".VideoSettingActivity"></activity>
         <service android:name=".BluetoothLeService"></service>
     </application>
 
