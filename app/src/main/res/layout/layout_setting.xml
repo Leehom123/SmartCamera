@@ -44,6 +44,9 @@
             <include
                 android:id="@+id/layout_setting_camerline_include"
                 layout="@layout/layout_setting_cameraline"></include>
+            <include
+                android:id="@+id/layout_setting_shuiping_include"
+                layout="@layout/layout_setting_shuiping"></include>
             <TextView
                 android:id="@+id/tv_setting_timeout"
                 android:layout_width="wrap_content"

@@ -31,16 +31,16 @@
         </activity>
         <activity
             android:launchMode="singleInstance"
-            android:name=".CameraActivity" android:configChanges="orientation|keyboardHidden"></activity>
-        <activity android:name=".UserBackActivity"></activity>
-        <activity android:name=".AlbumActivity"></activity>
-        <activity android:name=".ShowPhotoFrag"></activity>
-        <activity android:name=".BlueTooth"></activity>
-        <activity android:name=".YuLanActivity"></activity>
-        <activity android:name=".VideoActivity"></activity>
-        <activity android:name=".JieVideoPlayerActivity"></activity>
-        <activity android:name=".VideoSettingActivity"></activity>
-        <service android:name=".BluetoothLeService"></service>
+            android:name=".CameraActivity" ></activity>
+        <activity android:name=".UserBackActivity" ></activity>
+        <activity android:name=".AlbumActivity" ></activity>
+        <activity android:name=".ShowPhotoFrag" ></activity>
+        <activity android:name=".BlueTooth" ></activity>
+        <activity android:name=".YuLanActivity" ></activity>
+        <activity android:name=".VideoActivity" ></activity>
+        <activity android:name=".JieVideoPlayerActivity" ></activity>
+        <activity android:name=".VideoSettingActivity" ></activity>
+        <service android:name=".BluetoothLeService" ></service>
     </application>
 
 </manifest>

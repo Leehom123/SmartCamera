@@ -33,8 +33,8 @@ public class VideoActivity extends Activity implements View.OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);//设置成全屏模式
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//强制为横屏
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_video);
 
         TextView title_text_title = (TextView)findViewById(R.id.title_text_title);

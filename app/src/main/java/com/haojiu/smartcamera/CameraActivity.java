@@ -13,7 +13,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-
 import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -24,11 +23,19 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
+import android.graphics.drawable.BitmapDrawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -36,10 +43,12 @@ import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
@@ -53,24 +62,29 @@ import android.util.Range;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.TextureView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import static com.haojiu.smartcamera.Utils.clamp;
+
 /**
  * Created by leehom on 2017/4/6.
  */
 
-public class CameraActivity extends Activity implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
+public class CameraActivity extends Activity implements SensorEventListener,View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
 
     private static final String TAG = "CameraActivity";
     private HandlerThread mBackgroundThread;//定义后台线程
@@ -116,7 +130,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
     private ImageButton btn_luxiang;
     private ImageButton btn_xiangce;
     private ImageButton btn_disp;
-    int cTime = 1, cTime_cl, cTime_fd, cTime_splash,cTime_language,cTime_dir, seekTime = 0, seekTime2 = 0;
+    int cTime = 1,cTime_setting,cTime_spx ,cTime_cl, cTime_fd, cTime_splash,cTime_language,cTime_dir, seekTime = 0, seekTime2 = 0;
     private RelativeLayout layout_setting_include;
     private Button close_setting;
     private TextView tv_yanchi;
@@ -137,6 +151,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
     private int ae;
     private String mNextVideoAbsolutePath;
     private Size mVideoSize;
+    private SensorManager sm;
     protected static final int MSG_REFRESH_UI = 1000;//电池电量
     //拍照权限请求码
     private static final int REQUEST_PICTURE_PERMISSION = 1;
@@ -168,7 +183,6 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
             openCamera(width, height);//打开相机
             configureTransform(width, height);
         }
-
         @Override
         public void onSurfaceTextureSizeChanged(SurfaceTexture surfaceTexture, int width, int height) {
 
@@ -237,7 +251,12 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
     private int length;
     private ArrayList<Integer> fbl_list;
     private TextView setting_second_state_vedio;
-
+    private MediaPlayer mPlayer;
+    private RelativeLayout layout_setting_shuiping_include;
+    private FrameLayout fl_spx;
+    private GSensitiveView gSensitiveView;
+    private TextView setting_second_state_shuiping;
+    private TextView setting_name_shuiping;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -246,6 +265,8 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//强制为横屏
         // 显示界面
         setContentView(R.layout.activity_camera);
+        mPlayer = MediaPlayer.create(getApplicationContext(), R.raw.kacha);
+
         luxiang_stop = (Button) findViewById(R.id.luxiang_stop);
         mTextureView = (AutoFitTextureView) findViewById(R.id.texture);
         zoom_text = (TextView) findViewById(R.id.zoom_text);
@@ -327,6 +348,11 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
         setting_second_state_power_type = (TextView)findViewById(R.id.setting_second_state_power_type);
         layout_setting_vedio_include = (RelativeLayout)findViewById(R.id.layout_setting_vedio_include);
         setting_second_state_vedio = (TextView)findViewById(R.id.setting_second_state_vedio);
+        layout_setting_shuiping_include = (RelativeLayout)findViewById(R.id.layout_setting_shuiping_include);
+        fl_spx = (FrameLayout)findViewById(R.id.shuipingxian);
+        setting_second_state_shuiping = (TextView)findViewById(R.id.setting_second_state_shuiping);
+
+        setting_name_shuiping = (TextView)findViewById(R.id.setting_name_shuiping);
 
         sb_ev.setMax(100);
         sb_zoom.setMax(100);
@@ -335,6 +361,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
         valueAE = 0;
         valueISO = 0;
         //button点击事件
+        layout_setting_shuiping_include.setOnClickListener(this);
         layout_setting_vedio_include.setOnClickListener(this);
         layout_setting_handdirection_include.setOnClickListener(this);
         layout_setting_language_include.setOnClickListener(this);
@@ -365,6 +392,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
         btn_close_type.setOnClickListener(this);
         type_matul_btn.setOnClickListener(this);
         type_automatic.setOnClickListener(this);
+        btn_xiangji.setOnClickListener(this);
         layout_setting_bluetooth_include.setOnClickListener(this);
         //seekBar监听器
         mySeekBarListener = new MySeekBarListener();
@@ -375,8 +403,22 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
 //        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
 //            mDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_ALARMS);
 //        }
+        //重力水平线对象
+        gSensitiveView = new GSensitiveView(getApplicationContext());
+        fl_spx.addView(gSensitiveView);
 
     }
+
+//    @Override
+//    public boolean dispatchTouchEvent(MotionEvent ev) {
+//        switch (ev.getAction()){
+//            case MotionEvent.ACTION_DOWN:
+//                if (!layout_setting_include.isFocusable())
+//                layout_setting_include.setVisibility(View.GONE);
+//                break;
+//        }
+//        return super.dispatchTouchEvent(ev);
+//    }
 
     //获取手机电量
     Handler mhHandler = new Handler() {
@@ -678,7 +720,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                     (float) viewWidth / mPreviewSize.getWidth());
             matrix.postScale(scale, scale, centerX, centerY);
             matrix.postRotate(90 * (rotation - 2), centerX, centerY);
-        } else if (Surface.ROTATION_180 == rotation) {
+        } else if (Surface.ROTATION_180 == rotation ) {
             matrix.postRotate(180, centerX, centerY);
         }
         mTextureView.setTransform(matrix);
@@ -708,6 +750,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
 
     @Override
     public void onClick(View view) {
+
         switch (view.getId()) {
             case R.id.picture:
                 new Thread(
@@ -722,6 +765,9 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                                 }
                             }
                         }).start();
+                break;
+            case R.id.xiangji:
+                takePicture();//拍照
                 break;
             case R.id.auto:
                 flag1 = true;
@@ -928,7 +974,6 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
 
                 break;
             case R.id.disp:
-
                 if (cTime % 2 == 1) {
                     btn_auto.setVisibility(View.INVISIBLE);
                     btn_style.setVisibility(View.INVISIBLE);
@@ -961,16 +1006,30 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                 cTime++;
                 break;
             case R.id.setting:
-                layout_setting_include.setVisibility(View.VISIBLE);
-                btn_wb.setClickable(false);
-                btn_iso.setClickable(false);
-                btn_style.setClickable(false);
-                btn_zipai.setClickable(false);
-                btn_xiangce.setClickable(false);
-                btn_luxiang.setClickable(false);
-                mButton.setClickable(false);
-                String text = tv_yanchi.getText().toString();
-                sleepTime = Integer.parseInt(text);
+                cTime_setting++;
+                if (cTime_setting%2==1){
+                    layout_setting_include.setVisibility(View.VISIBLE);
+                    btn_wb.setClickable(false);
+                    btn_iso.setClickable(false);
+                    btn_style.setClickable(false);
+                    btn_zipai.setClickable(false);
+                    btn_xiangce.setClickable(false);
+                    btn_luxiang.setClickable(false);
+                    mButton.setClickable(false);
+                    String text = tv_yanchi.getText().toString();
+                    sleepTime = Integer.parseInt(text);
+                }else {
+                    layout_setting_include.setVisibility(View.GONE);
+                    btn_wb.setClickable(true);
+                    btn_iso.setClickable(true);
+                    btn_style.setClickable(true);
+                    btn_zipai.setClickable(true);
+                    btn_xiangce.setClickable(true);
+                    btn_luxiang.setClickable(true);
+                    mButton.setClickable(true);
+                    String text = tv_yanchi.getText().toString();
+                    sleepTime = Integer.parseInt(text);
+                }
                 break;
             case R.id.layout_setting_fangdou_include:
                 cTime_fd++;
@@ -1009,6 +1068,31 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                         camera_line_text.setText("已关闭");
                     }
                 }
+                break;
+            case R.id.layout_setting_shuiping_include:
+                cTime_spx++;
+                if (cTime_spx%2==1){
+                    sm = (SensorManager) getSystemService(SENSOR_SERVICE);
+                    sm.registerListener( this, sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_UI);
+
+                    fl_spx.setVisibility(View.VISIBLE);
+                    if (cTime_language%2==1){
+                        setting_second_state_shuiping.setText("opened");
+                    }else {
+                        setting_second_state_shuiping.setText("已开启");
+                    }
+                }else {
+                    fl_spx.setVisibility(View.GONE);
+                    sm.unregisterListener(this);
+                    if (cTime_language%2==1){
+                        setting_second_state_shuiping.setText("closed");
+                    }else {
+                        setting_second_state_shuiping.setText("已关闭");
+                    }
+                }
+
+
+
                 break;
             case R.id.layout_setting_handdirection_include:
                 cTime_dir++;
@@ -1168,6 +1252,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                     setting_name_cameraline.setText("Guide");
                     tv_setting_timeout.setText("Time-lapse photography");
                     close_setting.setText("close");
+                    setting_name_shuiping.setText("Gravity horizontal line");
                     if (splash_text.getText().equals("已关闭")){
                         splash_text.setText("closed");
                     }else if (splash_text.getText().equals("自动")){
@@ -1194,6 +1279,11 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                         setting_second_state_bluetooth.setText("disconnected");
                     }else{
                         setting_second_state_bluetooth.setText("connected");
+                    }
+                    if (setting_second_state_shuiping.getText().equals("已开启")){
+                        setting_second_state_shuiping.setText("opened");
+                    }else {
+                        setting_second_state_shuiping.setText("closed");
                     }
                 }else {
                     setting_second_state_language.setText("中文");
@@ -1226,6 +1316,7 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                     setting_name_powertype.setText("电池类型");
                     setting_name_cameraline.setText("辅助线");
                     tv_setting_timeout.setText("延时摄影");
+                    setting_name_shuiping.setText("水平线");
                     close_setting.setText("关闭");
                     if (splash_text.getText().equals("closed")){
                         splash_text.setText("已关闭");
@@ -1253,6 +1344,11 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
                         setting_second_state_bluetooth.setText("已连接");
                     }else{
                         setting_second_state_bluetooth.setText("未连接");
+                    }
+                    if (setting_second_state_shuiping.getText().equals("opened")){
+                        setting_second_state_shuiping.setText("已开启");
+                    }else {
+                        setting_second_state_shuiping.setText("已关闭");
                     }
                 }
                 break;
@@ -1310,7 +1406,6 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
 
             //打开Camera
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
                 // here to request the missing permissions, and then overriding
                 //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
@@ -1375,6 +1470,13 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
 
             //创建拍照的CameraCaptureSession.CaptureCallback对象
             CameraCaptureSession.CaptureCallback captureCallback = new CameraCaptureSession.CaptureCallback() {
+
+
+                @Override
+                public void onCaptureStarted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, long timestamp, long frameNumber) {
+                    super.onCaptureStarted(session, request, timestamp, frameNumber);
+                    mPlayer.start();
+                }
                 //在拍照完成时调用
                 @Override
                 public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
@@ -1401,13 +1503,34 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
         if (mTextureView.isAvailable()) {
             //TextureView可用时，打开相机
             openCamera(mTextureView.getWidth(), mTextureView.getHeight());
+
         } else {
             //TextureView不可用时，为TextureView设置监听器
             mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
+        //屏幕旋转时，刷新相片预览方向的timer
+//        Timer timer1 = new Timer();
+//        TimerTask timerTask1 = new TimerTask() {
+//            @Override
+//            public void run() {
+//                runOnUiThread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        if (mTextureView.isAvailable()) {
+//                            configureTransform(mTextureView.getWidth(), mTextureView.getHeight());
+//                        }else {
+//                            //TextureView不可用时，为TextureView设置监听器
+//                            mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+//                        }
+//                    }
+//                });
+//            }
+//        };
+//        timer1.schedule(timerTask1,100,100);
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BATTERY_CHANGED);
         registerReceiver(mBroadcastReceiver, filter);
+        //动态刷新蓝牙设备发送来的参数
         Timer timer = new Timer();
         TimerTask timerTask = new TimerTask() {
             private int power;
@@ -1417,11 +1540,13 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
 
             @Override
             public void run() {
+
                 SharedPreferences preferences = getSharedPreferences("status", Context.MODE_PRIVATE);
                 status = preferences.getString("status", "未连接");
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+
                         if (cTime_language%2==1){
                             if (status.equals("已连接")){
                                 setting_second_state_bluetooth.setText("connected");
@@ -1550,6 +1675,14 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
     }
 
     @Override
+    protected void onDestroy() {
+        if (sm!=null){
+            sm.unregisterListener(this);
+        }
+        super.onDestroy();
+    }
+
+    @Override
     protected void onPause() {
         //关闭摄像头
         closeCamera();
@@ -1664,6 +1797,40 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
     private void stopApp(Activity activity) {
         Toast.makeText(activity, R.string.sorry, Toast.LENGTH_SHORT).show();
         activity.finish();
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        if (Sensor.TYPE_ACCELEROMETER != event.sensor.getType()) {
+            return;
+        }
+
+        float[] values = event.values;
+        float ax = values[0];
+        float ay = values[1];
+
+        double g = Math.sqrt(ax * ax + ay * ay);
+        double cos = ay / g;
+        if (cos > 1) {
+            cos = 1;
+        } else if (cos < -1) {
+            cos = -1;
+        }
+        double rad = Math.acos(cos);
+        if (ax < 0) {
+            rad = 2 * Math.PI - rad;
+        }
+
+        int uiRot = getWindowManager().getDefaultDisplay().getRotation();
+        double uiRad = Math.PI / 2 * uiRot;
+        rad -= uiRad;
+
+        gSensitiveView.setRotation(rad);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 
     private class MyBanSeekBarListener implements BanSeekBar.OnBanSeekBarChangeListener {
@@ -1902,7 +2069,6 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        // TODO Auto-generated method stub
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
                 long secondTime = System.currentTimeMillis();
@@ -2029,4 +2195,42 @@ public class CameraActivity extends Activity implements View.OnClickListener, Ac
         return choices[choices.length - 1];
     }
 
+    private static class GSensitiveView extends ImageView {
+
+        private Bitmap image;
+        private double rotation;
+        private Paint paint;
+
+        public GSensitiveView(Context context) {
+            super(context);
+            BitmapDrawable drawble = (BitmapDrawable) context.getResources().getDrawable(R.drawable.zhixian);
+            image = drawble.getBitmap();
+
+            paint = new Paint();
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            // super.onDraw(canvas);
+
+            double w = image.getWidth();
+            double h = image.getHeight();
+
+            Rect rect = new Rect();
+            getDrawingRect(rect);
+
+            int degrees = (int) (180 * rotation / Math.PI);
+            canvas.rotate(degrees, rect.width() / 2, rect.height() / 2);
+            canvas.drawBitmap(image, //
+                    (float) ((rect.width() - w) / 2),//
+                    (float) ((rect.height() - h) / 2),//
+                    paint);
+        }
+
+        public void setRotation(double rad) {
+            rotation = rad;
+            invalidate();
+        }
+
+    }
 }

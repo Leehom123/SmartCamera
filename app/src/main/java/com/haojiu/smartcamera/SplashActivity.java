@@ -19,7 +19,7 @@ public class SplashActivity extends Activity {
             @Override
             public void run() {
                 try {
-                    Thread.sleep(5000);
+                    Thread.sleep(2000);
                     startActivity(new Intent(SplashActivity.this,CameraActivity.class));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
