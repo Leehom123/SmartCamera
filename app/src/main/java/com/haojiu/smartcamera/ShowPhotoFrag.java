@@ -68,7 +68,10 @@ public class ShowPhotoFrag extends Activity implements View.OnClickListener{
         File dir = new File(Environment.getExternalStorageDirectory() + "/SmartCamera/");
         File[] files = dir.listFiles();
         for (File file : files) {
-            list.add("file:///" + Environment.getExternalStorageDirectory() + "/SmartCamera/" + file.getName());
+            String path = file.getAbsolutePath();
+            if (path.endsWith(".jpg") ) {
+                list.add("file:///" + Environment.getExternalStorageDirectory() + "/SmartCamera/" + file.getName());
+            }
         }
         return list;
     }

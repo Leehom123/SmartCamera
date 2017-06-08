@@ -138,7 +138,28 @@
                 android:layout_weight="1" />
         </LinearLayout>
     </RelativeLayout>
+<RelativeLayout
+    android:visibility="gone"
+    android:id="@+id/rl_video_redpoint"
+    android:layout_below="@+id/rl_top"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <ImageView
+        android:layout_centerVertical="true"
+        android:id="@+id/img_redpoint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/red_point"/>
+    <Chronometer
+        android:id="@+id/my_chronometer"
+        android:textColor="#ED5339"
+        android:layout_marginLeft="5dp"
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@+id/img_redpoint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
+</RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/rl_bottom"
@@ -208,15 +229,6 @@
                 android:layout_marginLeft="10dp"
                 android:background="@drawable/icon_8_2x"
                 />
-            <Button
-                android:id="@+id/luxiang_stop"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:visibility="gone"
-                android:text="停止"
-                android:layout_marginLeft="10dp"
-                android:textColor="#FFFFFF"
-                android:background="@null"/>
             <ImageButton
                 android:id="@+id/picture"
                 android:layout_marginLeft="10dp"
@@ -232,6 +244,7 @@
                 android:background="@drawable/icon_10_2x"
                />
             <Button
+                android:visibility="gone"
                 android:id="@+id/fankui"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
@@ -287,4 +300,10 @@
         android:id="@+id/layout_setting_include"
         ></include>
 
+    <com.haojiu.smartcamera.AnimationImageView
+        android:id="@+id/img_focus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@mipmap/focus"
+        android:visibility="invisible" />
 </RelativeLayout>
