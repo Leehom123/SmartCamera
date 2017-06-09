@@ -117,7 +117,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
     private Size mPreviewSize;//预览大小
     private AutoFitTextureView mTextureView;
     private CameraDevice mCameraDevice;//代表摄像头的成员变量
-    private String mCameraId = "0";//摄像头ID（通常0代表后置摄像头，1代表前置摄像头）
+    private String mCameraId="0";//摄像头ID（通常0代表后置摄像头，1代表前置摄像头）
     private Semaphore mCameraLock = new Semaphore(1);//Camera互斥锁
     private int valueAE, valueISO, sleepTime = 0;
     private Boolean flag1 = true, flag2 = true, flag3 = true;//lag1 与ES/ISO 对应，flag2与WB对应，flag3 与MF对应
@@ -173,7 +173,8 @@ public class CameraActivity extends Activity implements SensorEventListener,View
     //拍照权限
     private static final String[] PICTURE_PERMISSIONS = {
             Manifest.permission.CAMERA,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.RECORD_AUDIO
     };
 
     //    sensor的方向为270度时向为90度时，屏幕方向与Sensor方向的对应关系 90 0 270 180
@@ -186,10 +187,10 @@ public class CameraActivity extends Activity implements SensorEventListener,View
 
     //sensor的方向为270度时，屏幕方向与Sensor方向的对应关系 270 180 90 0
     static {
-        INVERSE_ORIENTATIONS.append(Surface.ROTATION_0, 270);
-        INVERSE_ORIENTATIONS.append(Surface.ROTATION_90, 180);
-        INVERSE_ORIENTATIONS.append(Surface.ROTATION_180, 90);
-        INVERSE_ORIENTATIONS.append(Surface.ROTATION_270, 0);
+        INVERSE_ORIENTATIONS.append(Surface.ROTATION_0, 90);
+        INVERSE_ORIENTATIONS.append(Surface.ROTATION_90, 0);
+        INVERSE_ORIENTATIONS.append(Surface.ROTATION_180, 270);
+        INVERSE_ORIENTATIONS.append(Surface.ROTATION_270, 180);
     }
 
     /**
@@ -536,10 +537,9 @@ public class CameraActivity extends Activity implements SensorEventListener,View
             if (!mCameraLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("相机打开超时");
             }
-            String cameraId = cameraManager.getCameraIdList()[0];
 
             // Choose the sizes for camera preview and video recording
-            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(cameraId);
+            CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(mCameraId);
             StreamConfigurationMap map = characteristics
                     .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             mSensorOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
@@ -654,6 +654,8 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                     }
                     mCameraCaptureSession = cameraCaptureSession;
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON);
+                    mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO);
+
                     mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
                     //开始显示的时候将触摸变焦监听器设置了
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO);
@@ -716,22 +718,21 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         try {
             //通过标识符返回当前连接的相机设备的列表，包括可能在使用其他相机客户端的相机
             String[] cameraIds = cameraManager.getCameraIdList();
-            for (String cameraId : cameraIds) {
-                //获得指定CameraId相机设备的属性
-                cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
 
-                //获得摄像头朝向
-                Integer facing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
-                //若是前置摄像头，不做任何操作
-                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
-                    continue;
-                }
-                mCameraId = cameraId;
+                //获得指定CameraId相机设备的属性
+                cameraCharacteristics = cameraManager.getCameraCharacteristics(mCameraId);
+
+//                //获得摄像头朝向
+//                Integer facing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
+//                //若是前置摄像头，不做任何操作
+//                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
+//                    return;
+//                }
                 //获得流配置
                 StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
                 if (map == null) {
-                    continue;
+                    return;
                 }
                 Point displaySize = new Point();
                 getWindowManager().getDefaultDisplay().getSize(displaySize);
@@ -764,7 +765,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 //是否有闪光灯
                 Boolean available = cameraCharacteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
                 mFlashSupported = (available == null ? false : available);
-            }
+
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -878,6 +879,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
 
     @Override
     public void onClick(View view) {
+        SharedPreferences seekbar_value = getSharedPreferences("seekbar_value", Context.MODE_PRIVATE);
         mFocusImage.stopFocus();
         switch (view.getId()) {
             case R.id.picture:
@@ -1087,7 +1089,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 mButton.setClickable(true);
                 break;
             case R.id.zipai:
-                if (Utils.isFastClick()) {
+                if (Utils.isFastClick(1)) {
                     return;
                 }
                 if (mCameraId.equals("0")) {
@@ -1301,25 +1303,50 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 seekTime++;
                 if (seekTime % 3 == 0) {
                     //ev
+                    int ev = seekbar_value.getInt("ev", 50);
+                    String ev_text = seekbar_value.getString("ev_text", "0");
+                    sb_ev.setProgress(ev);
+                    es_text.setText(ev_text);
                     btn_ev.setBackgroundDrawable(this.getResources().getDrawable(R.drawable.selector_ev));
                 } else if (seekTime % 3 == 1) {
                     //es
+                    int es = seekbar_value.getInt("es", 50);
+                    String es_text_value = seekbar_value.getString("es_text", "50");
+                    sb_ev.setProgress(es);
+                    es_text.setText(es_text_value);
                     btn_ev.setBackgroundDrawable(this.getResources().getDrawable(R.drawable.selector_es));
                 } else {
                     //iso
+                    int iso = seekbar_value.getInt("iso", 50);
+                    String iso_text = seekbar_value.getString("iso_text", "1750");
+                    sb_ev.setProgress(iso);
+                    es_text.setText(iso_text);
                     btn_ev.setBackgroundDrawable(this.getResources().getDrawable(R.drawable.selector_iso));
                 }
                 break;
             case R.id.zoom:
+
                 seekTime2++;
                 if (seekTime2 % 3 == 0) {
                     //ZOOM
+                    int zoom = seekbar_value.getInt("zoom", 0);
+                    String zoom_text_value = seekbar_value.getString("zoom_text", "0");
+                    sb_zoom.setProgress(zoom);
+                    zoom_text.setText(zoom_text_value);
                     btn_zoom.setBackgroundDrawable(this.getResources().getDrawable(R.drawable.selector_zoom));
                 } else if (seekTime2 % 3 == 1) {
                     //MF
+                    int mf = seekbar_value.getInt("mf", 0);
+                    String mf_text = seekbar_value.getString("mf_text", "0");
+                    sb_zoom.setProgress(mf);
+                    zoom_text.setText(mf_text);
                     btn_zoom.setBackgroundDrawable(this.getResources().getDrawable(R.drawable.selector_mf));
                 } else {
                     //WB
+                    int wb = seekbar_value.getInt("wb", 11);
+                    String wb_text = seekbar_value.getString("wb_text", "1");
+                    sb_zoom.setProgress(wb);
+                    zoom_text.setText(wb_text);
                     btn_zoom.setBackgroundDrawable(this.getResources().getDrawable(R.drawable.selector_wb));
                 }
                 break;
@@ -1333,14 +1360,16 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 startActivity(new Intent(CameraActivity.this, BlueTooth.class));
                 break;
             case R.id.luxiang:
+                if (Utils.isFastClick(2)) {
+                    return;
+                }
                 cTime_luxiang++;
                 if (cTime_luxiang%2==1){
                     if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
 
                         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO},
                                 0);
-
-                    } else {
+                    }else {
                         startRecordingVideo();
                     }
                     rl_video_redpoint.setVisibility(View.VISIBLE);
@@ -1537,6 +1566,15 @@ public class CameraActivity extends Activity implements SensorEventListener,View
             permissionUtil.requestRequiredPermissions(PICTURE_PERMISSIONS, R.string.need_permissions, REQUEST_PICTURE_PERMISSION);
             return;
         }
+        //关闭相机再开启另外个摄像头
+        if (mCameraCaptureSession != null) {
+            mCameraCaptureSession.close();
+            mCameraCaptureSession = null;
+        }
+        if (mCameraDevice != null) {
+            mCameraDevice.close();
+            mCameraDevice = null;
+        }
         //获得Camera的系统服务管理器
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         //获得指定CameraId相机设备的属性
@@ -1570,7 +1608,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 return;
             }
             cameraManager.openCamera(mCameraId, mCameraDeviceStateCallback, mBackgroundHandler);
-
+            startPreview();
         } catch (InterruptedException e) {
             throw new RuntimeException("打开相机时中断");
         } catch (CameraAccessException e) {
@@ -1703,6 +1741,10 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         super.onResume();
         //开启后台线程
         startBackgroundThread();
+        startPreview();
+        if (mCameraId==null){
+            mCameraId="0";
+        }
         if (mCameraCaptureSession!=null && mPreviewRequestBuilder!=null){
             updatePreview();
         }
@@ -2117,6 +2159,8 @@ public class CameraActivity extends Activity implements SensorEventListener,View
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             }
+            SharedPreferences sp_seekbar_value = getSharedPreferences("seekbar_value", Context.MODE_PRIVATE);
+            SharedPreferences.Editor edit = sp_seekbar_value.edit();
             switch (seekBar.getId()) {
                 case R.id.sb_zoom:
                     mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO);
@@ -2137,25 +2181,28 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                             mPreviewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, newRect);
                             zoom_text.setText(i / 10 + ".0");
                             updatePreview();//更新预览
+                            edit.putInt("zoom",i);
+                            edit.putString("zoom_text",i/10+".0");
                         }
                     } else if (seekTime2 % 3 == 1) {
                         btn_auto.setAlpha(0.9f);
                         if (timer != null) {
                             timer.cancel();
                         }
-
+                        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF);
                         //MF
                         Float range1 = characteristics.get(CameraCharacteristics.LENS_INFO_MINIMUM_FOCUS_DISTANCE);
                         if (range1 != null) {
-                            mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_OFF);
                             float num = (((float) i) * range1 / 100);
                             mPreviewRequestBuilder.set(CaptureRequest.LENS_FOCUS_DISTANCE, num);
                             int showNum = (int) num;
                             zoom_text.setText(showNum + "");
                             updatePreview();//更新预览
                             flag3 = false;
+                            edit.putInt("mf",i);
+                            edit.putString("mf_text",showNum+"");
                         }
-                        mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO);
+
                     } else {
                         btn_auto.setAlpha(0.9f);
                         if (timer != null) {
@@ -2167,16 +2214,21 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                         mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO);
                         //WB CONTROL_AWB_MODE
                         int[] awb = characteristics.get(CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES);
+                        if (i<11){
+                            i=11;
+                        }
                         int wb = i / 11;
-                        if (i == 9) {
+                        if (wb == 9) {
                             wb = 8;
                         }
                         mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AWB_MODE, wb);
                         zoom_text.setText(wb + "");
                         updatePreview();//更新预览
                         flag2 = false;
+                        edit.putInt("wb",i);
+                        edit.putString("wb_text",wb+"");
                     }
-
+                    edit.commit();
                     break;
                 case R.id.sb_ev:
 
@@ -2197,6 +2249,8 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                                 Log.e(TAG, "ae: " + CameraActivity.this.ae);
                                 es_text.setText(CameraActivity.this.ae + "");
                                 updatePreview();//更新预览
+                                edit.putInt("ev",i);
+                                edit.putString("ev_text",CameraActivity.this.ae+"");
                             }
                         }
                     } else if (seekTime % 3 == 1) {
@@ -2221,6 +2275,8 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                                 es_text.setText(i + "");
                                 flag1 = false;
                                 updatePreview();//更新预览
+                                edit.putInt("es",i);
+                                edit.putString("es_text",i+"");
                             }
                         }
                     } else {
@@ -2246,10 +2302,12 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                                 bansb_iso.setProgress(valueISO);
                                 flag1 = false;
                                 updatePreview();//更新预览
+                                edit.putInt("iso",i);
+                                edit.putString("iso_text",iso+"");
                             }
                         }
                     }
-
+                    edit.commit();
                     break;
                 case R.id.buchang:
                     Range<Integer> range1 = characteristics.get(CameraCharacteristics.CONTROL_AE_COMPENSATION_RANGE);
@@ -2312,7 +2370,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
             setUpMediaRecorder();
             SurfaceTexture texture = mTextureView.getSurfaceTexture();
             assert texture != null;
-            texture.setDefaultBufferSize(1920, 1080);
+            texture.setDefaultBufferSize(mVideoSize.getWidth(),mVideoSize.getHeight());
             mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
             List<Surface> surfaces = new ArrayList<>();
 
@@ -2359,7 +2417,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         if (mNextVideoAbsolutePath == null || mNextVideoAbsolutePath.isEmpty()) {
             SimpleDateFormat df = new SimpleDateFormat("yyyyMMdd_HHmmss");//设置日期格式
             String time = df.format(System.currentTimeMillis());
-            mNextVideoAbsolutePath = "/storage/emulated/0/SmartCamera/VEDIO_" + time + ".mp4";
+            mNextVideoAbsolutePath = "/storage/emulated/0/SmartCamera/VID_" + time + ".mp4";
         }
         mMediaRecorder.setOutputFile(mNextVideoAbsolutePath);
         mMediaRecorder.setVideoEncodingBitRate(10000000);

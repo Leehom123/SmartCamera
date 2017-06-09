@@ -58,6 +58,7 @@ public class TextureViewTouchEvent implements MyTextureView.MyTextureViewTouchEv
                 newRect = new Rect(focusLeft, focusBottom, focusLeft + areaSize, focusBottom + areaSize);
                 MeteringRectangle meteringRectangle = new MeteringRectangle(newRect, 500);
                 MeteringRectangle[] meteringRectangleArr = {meteringRectangle};
+                mPreviewBuilder.set(CaptureRequest.CONTROL_AF_MODE, CameraMetadata.CONTROL_AF_MODE_AUTO);
                 mPreviewBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
                 mPreviewBuilder.set(CaptureRequest.CONTROL_AF_REGIONS, meteringRectangleArr);
                 mPreviewBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);

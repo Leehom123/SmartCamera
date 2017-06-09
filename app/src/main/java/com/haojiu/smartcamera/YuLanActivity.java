@@ -21,7 +21,8 @@ import android.widget.Toast;
  * Created by leehom on 2017/5/26.
  */
 
-public class YuLanActivity extends Activity {
+public class
+YuLanActivity extends Activity {
     private PopupWindow popupWindow;
     private View view;
     @Override
