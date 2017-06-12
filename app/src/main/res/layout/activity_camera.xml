@@ -162,6 +162,22 @@
 </RelativeLayout>
 
     <RelativeLayout
+        android:id="@+id/rl_yssy_text"
+        android:visibility="gone"
+        android:layout_above="@+id/rl_bottom"
+        android:layout_marginBottom="10dp"
+        android:layout_centerHorizontal="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:textSize="22dp"
+            android:textColor="#FFFFFF"
+            android:id="@+id/yssy_text_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </RelativeLayout>
+    <RelativeLayout
         android:id="@+id/rl_bottom"
         android:background="#2E2E2E"
         android:alpha="0.5"
@@ -292,13 +308,7 @@
         android:id="@+id/layout_awb_include"
         layout="@layout/layout_awb"></include>
 
-    <include
-        android:layout_height="800dp"
-        android:layout_width="1000dp"
-        layout="@layout/layout_setting"
-        android:visibility="gone"
-        android:id="@+id/layout_setting_include"
-        ></include>
+
 
     <com.haojiu.smartcamera.AnimationImageView
         android:id="@+id/img_focus"

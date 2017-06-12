@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/rl_setting"
+    >
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        >
+        <LinearLayout
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+            <include
+                android:id="@+id/layout_setting_bluetooth_include"
+                layout="@layout/layout_setting_bluetooth"></include>
+            <include
+                android:id="@+id/layout_setting_vedio_include"
+                layout="@layout/layout_setting_vedio"></include>
+            <include
+                android:id="@+id/layout_setting_handdirection_include"
+                layout="@layout/layout_setting_handdirection"></include>
+            <include
+                android:id="@+id/layout_setting_fangdou_include"
+                layout="@layout/layout_setting_fangdou"></include>
+            <include
+                android:id="@+id/layout_setting_splash_include"
+                layout="@layout/layout_setting_splash"></include>
+            <include
+                android:id="@+id/layout_setting_language_include"
+                layout="@layout/layout_setting_language"></include>
+            <include
+                android:id="@+id/layout_setting_power_type_include"
+                layout="@layout/layout_setting_power_type"></include>
+            <include
+                android:id="@+id/layout_setting_camerline_include"
+                layout="@layout/layout_setting_cameraline"></include>
+            <include
+                android:id="@+id/layout_setting_shuiping_include"
+                layout="@layout/layout_setting_shuiping"></include>
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

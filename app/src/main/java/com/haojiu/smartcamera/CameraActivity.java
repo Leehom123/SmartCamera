@@ -65,21 +65,28 @@ import android.util.Log;
 import android.util.Range;
 import android.util.Size;
 import android.util.SparseIntArray;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.TextureView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.ScaleAnimation;
+import android.widget.AdapterView;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.Chronometer;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -142,18 +149,9 @@ public class CameraActivity extends Activity implements SensorEventListener,View
     private ImageButton btn_xiangce;
     private ImageButton btn_disp;
     int cTime = 1,cTime_luxiang,cTime_setting,cTime_spx ,cTime_cl, cTime_fd, cTime_splash,cTime_language,cTime_dir, seekTime = 0, seekTime2 = 0;
-    private RelativeLayout layout_setting_include;
-    private Button close_setting;
-    private TextView tv_yanchi;
-    private Button btn_minus;
-    private Button btn_add;
     private Timer timer, timer_type, timer_wb;
     private TimerTask task, task_type, task_wb;
     private CameraLine camera_line;
-    private RelativeLayout cameraline_include;
-    private TextView camera_line_text;
-    private RelativeLayout splash_include;
-    private TextView splash_text;
     private ImageButton btn_ev;
     private ImageButton btn_zoom;
     private Button matul_btn;
@@ -163,6 +161,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
     private String mNextVideoAbsolutePath;
     private Size mVideoSize;
     private SensorManager sm;
+    private PopupWindow mPopWindow;
     /**
      * focus的图
      */
@@ -257,10 +256,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
     private Button btn_close_type;
     private Button type_matul_btn;
     private Button type_automatic;
-    private RelativeLayout fangdou_include;
-    private TextView text_fangdou;
     private TextView setting_second_state;
-    private RelativeLayout layout_setting_bluetooth_include;
     private BanSeekBar sb_zoom;
     private BanSeekBar sb_jizhun;
     private BanSeekBar sb_kuaimen;
@@ -269,10 +265,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
     private BanSeekBar bansb_sewen;
     private BanSeekBar bansb_sediao;
     private BanSeekBar bansb_iso;
-    private TextView setting_second_state_bluetooth;
     private MediaRecorder mMediaRecorder;
-    private RelativeLayout layout_setting_language_include;
-    private TextView setting_second_state_language;
     private Button lock_btn;
     private TextView tv_type;
     private TextView tv_type_jizhun;
@@ -282,29 +275,14 @@ public class CameraActivity extends Activity implements SensorEventListener,View
     private TextView tv_wb_mode_sewen;
     private TextView tv_wb_mode_sediao;
     private TextView tv_power;
-    private TextView setting_name_bluetooth;
-    private TextView setting_name_video;
-    private TextView setting_name_handdirection;
-    private TextView setting_name_fangdou;
-    private TextView setting_name_splash;
-    private TextView setting_name_powertype;
-    private TextView setting_name_cameraline;
-    private TextView tv_setting_timeout;
-    private TextView setting_second_state_dir;
-    private RelativeLayout layout_setting_handdirection_include;
-    private TextView setting_second_state_power_type;
-    private RelativeLayout layout_setting_vedio_include;
     private Range<Integer>[] exposeFPSRange;
     private ArrayList<Integer> list;
     private int length;
     private ArrayList<Integer> fbl_list;
     private TextView setting_second_state_vedio;
     private MediaPlayer mPlayer;
-    private RelativeLayout layout_setting_shuiping_include;
     private FrameLayout fl_spx;
     private GSensitiveView gSensitiveView;
-    private TextView setting_second_state_shuiping;
-    private TextView setting_name_shuiping;
     private Chronometer my_chronometer;
     private RelativeLayout rl_video_redpoint;
     /**
@@ -316,6 +294,27 @@ public class CameraActivity extends Activity implements SensorEventListener,View
      */
     private PreviewSessionCallback mPreviewSessionCallback;
     private CameraCharacteristics cameraCharacteristics;
+    private String text_yssy="取消";
+    private TextView yssy_text_time;
+    private RelativeLayout rl_yssy_text;
+    private Timer timer_yssy;
+    private TimerTask timerTask_yssy;
+    private TextView setting_name_bluetooth;
+    private TextView setting_name_video;
+    private TextView setting_name_handdirection;
+    private TextView setting_name_fangdou;
+    private TextView setting_name_splash;
+    private TextView setting_name_powertype;
+    private TextView setting_name_cameraline;
+    private TextView setting_second_state_dir;
+    private TextView setting_second_state_power_type;
+    private TextView camera_line_text;
+    private TextView splash_text;
+    private TextView setting_second_state_shuiping;
+    private TextView setting_name_shuiping;
+    private TextView text_fangdou;
+    private TextView setting_second_state_bluetooth;
+    private TextView setting_second_state_language;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -346,7 +345,6 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         sb_zoom = (BanSeekBar) findViewById(R.id.sb_zoom);
         close_iso = (Button) findViewById(R.id.close_iso);
         layout_awb_include = (LinearLayout) findViewById(R.id.layout_awb_include);
-        layout_setting_include = (RelativeLayout) findViewById(R.id.layout_setting_include);
         layout_type_include = (LinearLayout) findViewById(R.id.layout_type_include);
         close_awb = (Button) findViewById(R.id.close_awb);
         btn_wb = (ImageButton) findViewById(R.id.wb);
@@ -359,16 +357,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         btn_disp = (ImageButton) findViewById(R.id.disp);
         bansb_sewen = (BanSeekBar) findViewById(R.id.sewen);
         bansb_sediao = (BanSeekBar) findViewById(R.id.sediao);
-        close_setting = (Button) findViewById(R.id.close_setting);
-        tv_yanchi = (TextView) findViewById(R.id.tv_yanchi);
-        btn_minus = (Button) findViewById(R.id.btn_minus);
-        btn_add = (Button) findViewById(R.id.btn_add);
         camera_line = (CameraLine) findViewById(R.id.id_cl);
-        cameraline_include = (RelativeLayout) findViewById(R.id.layout_setting_camerline_include);
-        fangdou_include = (RelativeLayout) findViewById(R.id.layout_setting_fangdou_include);
-        camera_line_text = (TextView) findViewById(R.id.setting_second_state_line);
-        splash_include = (RelativeLayout) findViewById(R.id.layout_setting_splash_include);
-        splash_text = (TextView) findViewById(R.id.setting_splash_second_state);
         btn_ev = (ImageButton) findViewById(R.id.ev);
         btn_zoom = (ImageButton) findViewById(R.id.zoom);
         matul_btn = (Button) findViewById(R.id.matul_btn);
@@ -385,15 +374,13 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         btn_fankui = (Button) findViewById(R.id.fankui);
         rl_setting = (RelativeLayout) findViewById(R.id.rl_setting);
         btn_close_type = (Button) findViewById(R.id.close_type);
-        text_fangdou = (TextView) findViewById(R.id.setting_second_state_fangdou);
+
         setting_second_state = (TextView) findViewById(R.id.setting_second_state);
-        layout_setting_bluetooth_include = (RelativeLayout) findViewById(R.id.layout_setting_bluetooth_include);
         sb_jizhun = (BanSeekBar) findViewById(R.id.jizhun);
         sb_kuaimen = (BanSeekBar) findViewById(R.id.kuaimen);
         sb_buchang_type = (BanSeekBar) findViewById(R.id.buchang);
-        setting_second_state_bluetooth = (TextView) findViewById(R.id.setting_second_state_bluetooth);
-        layout_setting_language_include = (RelativeLayout)findViewById(R.id.layout_setting_language_include);
-        setting_second_state_language = (TextView)findViewById(R.id.setting_second_state_language);
+
+
         tv_type = (TextView)findViewById(R.id.tv_type);
         tv_type_jizhun = (TextView)findViewById(R.id.tv_type_jizhun);
         tv_type_kuaimen = (TextView)findViewById(R.id.tv_type_kuaimen);
@@ -401,26 +388,11 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         tv_wb_mode = (TextView)findViewById(R.id.tv_wb_mode);
         tv_wb_mode_sewen = (TextView)findViewById(R.id.tv_wb_mode_sewen);
         tv_wb_mode_sediao = (TextView)findViewById(R.id.tv_wb_mode_sediao);
-        setting_name_bluetooth = (TextView)findViewById(R.id.setting_name_bluetooth);
-        setting_name_video = (TextView)findViewById(R.id.setting_name_video);
-        setting_name_handdirection = (TextView)findViewById(R.id.setting_name_handdirection);
-        setting_name_fangdou = (TextView)findViewById(R.id.setting_name_fangdou);
-        setting_name_splash = (TextView)findViewById(R.id.setting_name_splash);
-        setting_name_powertype = (TextView)findViewById(R.id.setting_name_powertype);
-        setting_name_cameraline = (TextView)findViewById(R.id.setting_name_cameraline);
-        tv_setting_timeout = (TextView)findViewById(R.id.tv_setting_timeout);
-        setting_second_state_dir = (TextView)findViewById(R.id.setting_second_state_dir);
-        layout_setting_handdirection_include = (RelativeLayout)findViewById(R.id.layout_setting_handdirection_include);
-        setting_second_state_power_type = (TextView)findViewById(R.id.setting_second_state_power_type);
-        layout_setting_vedio_include = (RelativeLayout)findViewById(R.id.layout_setting_vedio_include);
-        setting_second_state_vedio = (TextView)findViewById(R.id.setting_second_state_vedio);
-        layout_setting_shuiping_include = (RelativeLayout)findViewById(R.id.layout_setting_shuiping_include);
         fl_spx = (FrameLayout)findViewById(R.id.shuipingxian);
-        setting_second_state_shuiping = (TextView)findViewById(R.id.setting_second_state_shuiping);
-
         rl_video_redpoint = (RelativeLayout)findViewById(R.id.rl_video_redpoint);
         my_chronometer = (Chronometer)findViewById(R.id.my_chronometer);
-        setting_name_shuiping = (TextView)findViewById(R.id.setting_name_shuiping);
+        yssy_text_time = (TextView)findViewById(R.id.yssy_text_time);
+        rl_yssy_text = (RelativeLayout)findViewById(R.id.rl_yssy_text);
 
         my_chronometer.setOnChronometerTickListener(new Chronometer.OnChronometerTickListener() {
             @Override
@@ -440,14 +412,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         valueAE = 0;
         valueISO = 0;
         //button点击事件
-        layout_setting_shuiping_include.setOnClickListener(this);
-        layout_setting_vedio_include.setOnClickListener(this);
-        layout_setting_handdirection_include.setOnClickListener(this);
-        layout_setting_language_include.setOnClickListener(this);
         btn_luxiang.setOnClickListener(this);
-        fangdou_include.setOnClickListener(this);
-        cameraline_include.setOnClickListener(this);
-        splash_include.setOnClickListener(this);
         mButton.setOnClickListener(this);
         btn_iso.setOnClickListener(this);
         close_iso.setOnClickListener(this);
@@ -456,9 +421,6 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         btn_zipai.setOnClickListener(this);
         btn_disp.setOnClickListener(this);
         btn_setting.setOnClickListener(this);
-        close_setting.setOnClickListener(this);
-        btn_minus.setOnClickListener(this);
-        btn_add.setOnClickListener(this);
         btn_ev.setOnClickListener(this);
         btn_zoom.setOnClickListener(this);
         btn_auto.setOnClickListener(this);
@@ -471,7 +433,6 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         type_matul_btn.setOnClickListener(this);
         type_automatic.setOnClickListener(this);
         btn_xiangji.setOnClickListener(this);
-        layout_setting_bluetooth_include.setOnClickListener(this);
         //seekBar监听器
         mySeekBarListener = new MySeekBarListener();
         myBanSeekBarListener = new MyBanSeekBarListener();
@@ -883,21 +844,86 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         mFocusImage.stopFocus();
         switch (view.getId()) {
             case R.id.picture:
-                new Thread(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    Thread.sleep(sleepTime * 1000);
-                                    takePicture();//拍照
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                        }).start();
+                showPopupWindow();
                 break;
             case R.id.xiangji:
-                takePicture();//拍照
+                if (Utils.isFastClick(1)) {
+                    return;
+                }
+                rl_yssy_text.setVisibility(View.VISIBLE);
+                if (text_yssy.equals("取消")){
+                    sleepTime=0;
+                }else if (text_yssy.equals("3s")){
+                    sleepTime=3;
+                }else if (text_yssy.equals("6s")){
+                    sleepTime=6;
+                }else if (text_yssy.equals("10s")){
+                    sleepTime=10;
+                }
+                //yssy的文字显示
+                if (timer_yssy==null){
+                    timer_yssy = new Timer();
+                }
+                if (timerTask_yssy==null){
+                    timerTask_yssy = new TimerTask() {
+                        @Override
+                        public void run() {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (text_yssy.equals("取消")){
+                                        rl_yssy_text.setVisibility(View.GONE);
+                                        if (timer_yssy!=null){
+                                            timer_yssy.cancel();
+                                            timer_yssy=null;
+                                        }
+                                        if (timerTask_yssy!=null){
+                                            timerTask_yssy.cancel();
+                                            timerTask_yssy=null;
+                                        }
+                                    }else {
+                                        sleepTime--;
+                                        if (sleepTime<0){
+                                            rl_yssy_text.setVisibility(View.GONE);
+                                        }else {
+                                            yssy_text_time.setText("拍照倒计时："+sleepTime+"s");
+                                        }
+
+                                    }
+                                }
+                            });
+                        }
+                    };
+                }
+                timer_yssy.schedule(timerTask_yssy,20,1000);
+                new Thread(
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Thread.sleep(sleepTime * 1000);
+                                takePicture();//拍照
+                                if (rl_yssy_text.getVisibility()!=View.GONE){
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            rl_yssy_text.setVisibility(View.GONE);
+                                        }
+                                    });
+                                }
+                                    if (timer_yssy!=null){
+                                        timer_yssy.cancel();
+                                        timer_yssy=null;
+                                    }
+                                    if (timerTask_yssy!=null){
+                                        timerTask_yssy.cancel();
+                                        timerTask_yssy=null;
+                                    }
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }).start();
                 break;
             case R.id.auto:
                 flag1 = true;
@@ -1136,30 +1162,27 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 cTime++;
                 break;
             case R.id.setting:
-                cTime_setting++;
-                if (cTime_setting%2==1){
-                    layout_setting_include.setVisibility(View.VISIBLE);
-                    btn_wb.setClickable(false);
-                    btn_iso.setClickable(false);
-                    btn_style.setClickable(false);
-                    btn_zipai.setClickable(false);
-                    btn_xiangce.setClickable(false);
-                    btn_luxiang.setClickable(false);
-                    mButton.setClickable(false);
-                    String text = tv_yanchi.getText().toString();
-                    sleepTime = Integer.parseInt(text);
-                }else {
-                    layout_setting_include.setVisibility(View.GONE);
-                    btn_wb.setClickable(true);
-                    btn_iso.setClickable(true);
-                    btn_style.setClickable(true);
-                    btn_zipai.setClickable(true);
-                    btn_xiangce.setClickable(true);
-                    btn_luxiang.setClickable(true);
-                    mButton.setClickable(true);
-                    String text = tv_yanchi.getText().toString();
-                    sleepTime = Integer.parseInt(text);
-                }
+                showSettingPopWindow();
+//                cTime_setting++;
+//                if (cTime_setting%2==1){
+//                    layout_setting_include.setVisibility(View.VISIBLE);
+//                    btn_wb.setClickable(false);
+//                    btn_iso.setClickable(false);
+//                    btn_style.setClickable(false);
+//                    btn_zipai.setClickable(false);
+//                    btn_xiangce.setClickable(false);
+//                    btn_luxiang.setClickable(false);
+//                    mButton.setClickable(false);
+//                }else {
+//                    layout_setting_include.setVisibility(View.GONE);
+//                    btn_wb.setClickable(true);
+//                    btn_iso.setClickable(true);
+//                    btn_style.setClickable(true);
+//                    btn_zipai.setClickable(true);
+//                    btn_xiangce.setClickable(true);
+//                    btn_luxiang.setClickable(true);
+//                    mButton.setClickable(true);
+//                }
                 break;
             case R.id.layout_setting_fangdou_include:
                 cTime_fd++;
@@ -1276,29 +1299,6 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 updatePreview();
                 cTime_splash++;
                 break;
-            case R.id.close_setting:
-                layout_setting_include.setVisibility(View.GONE);
-                btn_wb.setClickable(true);
-                btn_iso.setClickable(true);
-                btn_style.setClickable(true);
-                btn_zipai.setClickable(true);
-                btn_xiangce.setClickable(true);
-                btn_luxiang.setClickable(true);
-                mButton.setClickable(true);
-                break;
-            case R.id.btn_add:
-                if (sleepTime < 10) {
-                    sleepTime++;
-                    tv_yanchi.setText(sleepTime + "");
-                }
-                break;
-            case R.id.btn_minus:
-                if (sleepTime > 0) {
-                    sleepTime--;
-                    tv_yanchi.setText(sleepTime + "");
-                }
-                break;
-
             case R.id.ev:
                 seekTime++;
                 if (seekTime % 3 == 0) {
@@ -1433,8 +1433,6 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                     setting_name_splash.setText("Splash");
                     setting_name_powertype.setText("Power Type");
                     setting_name_cameraline.setText("Guide");
-                    tv_setting_timeout.setText("Time-lapse photography");
-                    close_setting.setText("close");
                     setting_name_shuiping.setText("Gravity horizontal line");
                     if (splash_text.getText().equals("已关闭")){
                         splash_text.setText("closed");
@@ -1498,9 +1496,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                     setting_name_splash.setText("闪光灯");
                     setting_name_powertype.setText("电池类型");
                     setting_name_cameraline.setText("辅助线");
-                    tv_setting_timeout.setText("延时摄影");
                     setting_name_shuiping.setText("水平线");
-                    close_setting.setText("关闭");
                     if (splash_text.getText().equals("closed")){
                         splash_text.setText("已关闭");
                     }else if (splash_text.getText().equals("auto")){
@@ -1533,11 +1529,6 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                     }else {
                         setting_second_state_shuiping.setText("已关闭");
                     }
-                }
-                break;
-            default:
-                if (!rl_setting.hasFocus()) {
-                    layout_setting_include.setVisibility(View.INVISIBLE);
                 }
                 break;
         }
@@ -1677,6 +1668,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                     Toast.makeText(CameraActivity.this, "图片正在保存，请稍后......", Toast.LENGTH_SHORT).show();
                     Toast.makeText(CameraActivity.this, "图片已保存！", Toast.LENGTH_SHORT).show();
                     updatePreview();//继续预览
+                    sleepTime=0;
                 }
             };
             //停止连续取景
@@ -1793,7 +1785,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-
+                    if (setting_second_state_bluetooth!=null){
                         if (cTime_language%2==1){
                             if (status.equals("已连接")){
                                 setting_second_state_bluetooth.setText("connected");
@@ -1807,7 +1799,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                                 setting_second_state_bluetooth.setText("未连接");
                             }
                         }
-
+                    }
                     }
                 });
                 SharedPreferences preferences_key = getSharedPreferences("Key", Context.MODE_PRIVATE);
@@ -1821,7 +1813,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            mButton.performClick();
+                            btn_xiangji.performClick();
                         }
                     });
                 }
@@ -2507,6 +2499,139 @@ public class CameraActivity extends Activity implements SensorEventListener,View
             rotation = rad;
             invalidate();
         }
+
+    }
+    private ArrayList<String> getData(){
+        ArrayList<String> data = new ArrayList<String>();
+
+        data.add("3s");
+        data.add("6s");
+        data.add("10s");
+        if (cTime_language%2==1){
+            data.add("Cancel");
+        }else {
+            data.add("取消");
+        }
+        return data;
+    }
+    private void showPopupWindow() {
+        //设置contentView
+        View contentView = LayoutInflater.from(CameraActivity.this).inflate(R.layout.layout_popwindow_yssy, null);
+        mPopWindow = new PopupWindow(contentView,
+                WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT, true);
+        mPopWindow.setContentView(contentView);
+
+        ListView lv_popitem = (ListView)contentView.findViewById(R.id.lv_popitem);
+        lv_popitem.setAdapter(new PopListAdaptor(getApplicationContext(),getData()));
+
+        lv_popitem.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(getApplicationContext(),"倒计时拍照"+getData().get(position),Toast.LENGTH_SHORT).show();
+                text_yssy = getData().get(position);
+                mPopWindow.dismiss();
+            }
+        });
+
+        //显示PopupWindow
+        View rootview = LayoutInflater.from(CameraActivity.this).inflate(R.layout.activity_camera, null);
+        mPopWindow.showAtLocation(rootview, Gravity.CENTER, 0, 0);
+
+    }
+    public final  class ViewHolder{
+        public  TextView time_item_yssy;
+    }
+
+    public class PopListAdaptor extends BaseAdapter{
+
+        private LayoutInflater mInflater;
+        private Context context;
+        private ArrayList<String> list;
+        public PopListAdaptor(Context context,ArrayList<String> list) {
+            this.mInflater = LayoutInflater.from(context);
+            this.context = context;
+            this.list=list;
+        }
+
+        @Override
+        public int getCount() {
+            return list.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return null;
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            ViewHolder holder = null;
+            if (convertView == null) {
+
+                holder=new ViewHolder();
+
+                convertView = mInflater.inflate(R.layout.layout_item_pop, null);
+                holder.time_item_yssy = (TextView)convertView.findViewById(R.id.time_item_yssy);
+                convertView.setTag(holder);
+            }else {
+                holder = (ViewHolder)convertView.getTag();
+            }
+            holder.time_item_yssy.setText(list.get(position));
+            return convertView;
+        }
+    }
+
+    private void showSettingPopWindow() {
+        //设置contentView
+        View contentView = LayoutInflater.from(CameraActivity.this).inflate(R.layout.layout_popwindow_setting, null);
+        mPopWindow = new PopupWindow(contentView,
+                WindowManager.LayoutParams.WRAP_CONTENT, 700, true);
+
+        mPopWindow.setContentView(contentView);
+        RelativeLayout layout_setting_bluetooth_include = (RelativeLayout)contentView.findViewById(R.id.layout_setting_bluetooth_include);
+        RelativeLayout layout_setting_vedio_include = (RelativeLayout)contentView.findViewById(R.id.layout_setting_vedio_include);
+        RelativeLayout layout_setting_handdirection_include = (RelativeLayout)contentView.findViewById(R.id.layout_setting_handdirection_include);
+        RelativeLayout layout_setting_fangdou_include = (RelativeLayout)contentView.findViewById(R.id.layout_setting_fangdou_include);
+        RelativeLayout layout_setting_splash_include = (RelativeLayout)contentView.findViewById(R.id.layout_setting_splash_include);
+        RelativeLayout layout_setting_language_include = (RelativeLayout)contentView.findViewById(R.id.layout_setting_language_include);
+        RelativeLayout layout_setting_power_type_include = (RelativeLayout)contentView.findViewById(R.id.layout_setting_power_type_include);
+        RelativeLayout layout_setting_camerline_include = (RelativeLayout)contentView.findViewById(R.id.layout_setting_camerline_include);
+        RelativeLayout layout_setting_shuiping_include = (RelativeLayout)contentView.findViewById(R.id.layout_setting_shuiping_include);
+        layout_setting_bluetooth_include.setOnClickListener(this);
+        layout_setting_vedio_include.setOnClickListener(this);
+        layout_setting_handdirection_include.setOnClickListener(this);
+        layout_setting_fangdou_include.setOnClickListener(this);
+        layout_setting_splash_include.setOnClickListener(this);
+        layout_setting_language_include.setOnClickListener(this);
+        layout_setting_power_type_include.setOnClickListener(this);
+        layout_setting_camerline_include.setOnClickListener(this);
+        layout_setting_shuiping_include.setOnClickListener(this);
+
+        setting_name_bluetooth = (TextView) contentView.findViewById(R.id.setting_name_bluetooth);
+        setting_name_video = (TextView) contentView.findViewById(R.id.setting_name_video);
+        setting_name_handdirection = (TextView) contentView.findViewById(R.id.setting_name_handdirection);
+        setting_name_fangdou = (TextView) contentView.findViewById(R.id.setting_name_fangdou);
+        setting_name_splash = (TextView) contentView.findViewById(R.id.setting_name_splash);
+        setting_name_powertype = (TextView) contentView.findViewById(R.id.setting_name_powertype);
+        setting_name_cameraline = (TextView) contentView.findViewById(R.id.setting_name_cameraline);
+        setting_second_state_dir = (TextView) contentView.findViewById(R.id.setting_second_state_dir);
+        setting_second_state_power_type = (TextView) contentView.findViewById(R.id.setting_second_state_power_type);
+        camera_line_text = (TextView) contentView.findViewById(R.id.setting_second_state_line);
+        splash_text = (TextView) contentView.findViewById(R.id.setting_splash_second_state);
+        setting_second_state_shuiping = (TextView) contentView.findViewById(R.id.setting_second_state_shuiping);
+        setting_name_shuiping = (TextView) contentView.findViewById(R.id.setting_name_shuiping);
+        text_fangdou = (TextView) contentView.findViewById(R.id.setting_second_state_fangdou);
+        setting_second_state_bluetooth = (TextView) contentView.findViewById(R.id.setting_second_state_bluetooth);
+        setting_second_state_language = (TextView) contentView.findViewById(R.id.setting_second_state_language);
+        setting_second_state_vedio = (TextView)contentView.findViewById(R.id.setting_second_state_vedio);
+        //显示PopupWindow
+        View rootview = LayoutInflater.from(CameraActivity.this).inflate(R.layout.activity_camera, null);
+        mPopWindow.showAtLocation(rootview, Gravity.CENTER, 0, 0);
 
     }
 }

@@ -237,8 +237,12 @@ public class BlueTooth extends Activity {
 
         public void addDevice(BluetoothDevice device,int rssi) {
             if(!mLeDevices.contains(device)) {
-                mLeDevices.add(device);
-                rssis.add(rssi);
+                if (mLeDevices!=null&&device.getName()!=null&& (!device.getName().equals(""))){
+                    if (device.getName().equals("YuShan")){
+                        mLeDevices.add(device);
+                        rssis.add(rssi);
+                    }
+                }
             }
         }
 
@@ -282,9 +286,6 @@ public class BlueTooth extends Activity {
             deviceAddress.setText( device.getAddress());
             deviceName.setText(device.getName());
             rssi.setText(""+rssis.get(i));
-
-
-
             return view;
         }
     }
