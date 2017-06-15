@@ -237,12 +237,12 @@ public class BlueTooth extends Activity {
 
         public void addDevice(BluetoothDevice device,int rssi) {
             if(!mLeDevices.contains(device)) {
-                if (mLeDevices!=null&&device.getName()!=null&& (!device.getName().equals(""))){
-                    if (device.getName().equals("YuShan")){
+//                if (mLeDevices!=null&&device.getName()!=null&& (!device.getName().equals(""))){
+//                    if (device.getName().equals("YuShan")){
                         mLeDevices.add(device);
                         rssis.add(rssi);
-                    }
-                }
+//                    }
+//                }
             }
         }
 

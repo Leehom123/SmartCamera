@@ -7,7 +7,7 @@ import android.view.TextureView;
 /**
  * 自定义TextureView来显示预览取景
  */
-public class AutoFitTextureView extends MyTextureView {
+    public class AutoFitTextureView extends MyTextureView {
     private int mRatioWidth = 0;
     private int mRatioHeight = 0;
 

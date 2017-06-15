@@ -292,23 +292,6 @@
                 />
         </LinearLayout>
     </RelativeLayout>
-    <include
-        android:id="@+id/layout_iso_include"
-        android:visibility="gone"
-        layout="@layout/layout_iso"></include>
-
-    <include
-        android:visibility="gone"
-        android:id="@+id/layout_type_include"
-        layout="@layout/layout_type"></include>
-
-
-    <include
-        android:visibility="gone"
-        android:id="@+id/layout_awb_include"
-        layout="@layout/layout_awb"></include>
-
-
 
     <com.haojiu.smartcamera.AnimationImageView
         android:id="@+id/img_focus"

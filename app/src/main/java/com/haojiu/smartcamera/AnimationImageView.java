@@ -8,6 +8,7 @@ import android.view.animation.Animation;
 import android.widget.ImageView;
 
 
+
 /**
  * Created by yuyidong on 14-12-23.
  */
@@ -68,13 +69,16 @@ public class AnimationImageView extends ImageView {
     }
 
     public void focusSuccess() {
+
         mTimes++;
         this.setVisibility(View.VISIBLE);
         this.setBackground(mContext.getDrawable(R.mipmap.focus_succeed));
         new Thread(new SleepThread(mMainHandler, CameraActivity.FOCUS_DISAPPEAR, 800, Integer.valueOf(mTimes))).start();
+
     }
 
     public void stopFocus() {
         this.setVisibility(INVISIBLE);
+
     }
 }

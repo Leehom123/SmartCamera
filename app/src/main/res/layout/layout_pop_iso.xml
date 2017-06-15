@@ -3,8 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#2E2E2E"
-    android:alpha="0.8"
     android:gravity="center">
 
     <LinearLayout
@@ -29,10 +27,4 @@
             android:layout_height="wrap_content"
             android:text="400"/>
     </LinearLayout>
-    <Button
-        android:id="@+id/close_iso"
-        android:layout_marginTop="20dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="关闭"/>
 </LinearLayout>

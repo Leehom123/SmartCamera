@@ -7,6 +7,7 @@
         android:gravity="center_horizontal"
         android:id="@+id/time_item_yssy"
         android:padding="5dp"
+        android:textColor="#FFFFFF"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 </LinearLayout>

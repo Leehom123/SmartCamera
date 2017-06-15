@@ -4,12 +4,12 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:background="#ffffff"
     android:orientation="vertical"
     android:paddingBottom="2dp"
     android:gravity="center_horizontal">
 
     <ListView
+        android:background="@null"
         android:id="@+id/lv_popitem"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"></ListView>
