@@ -36,7 +36,7 @@ public class VideoActivity extends Activity implements View.OnClickListener {
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//强制为横屏
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_video);
-
+        ActivityCollector.addActivity(this);
         TextView title_text_title = (TextView)findViewById(R.id.title_text_title);
         title_text_title.setText("录像");
 
@@ -68,7 +68,11 @@ public class VideoActivity extends Activity implements View.OnClickListener {
                 .bitmapConfig(Bitmap.Config.RGB_565)
                 .build();
     }
-
+    @Override
+    protected void onUserLeaveHint() {
+        ActivityCollector.finishAll();
+        super.onUserLeaveHint();
+    }
     @Override
     public void onClick(View v) {
         switch (v.getId()){

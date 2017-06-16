@@ -16,6 +16,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
         <Button
+            android:background="#D4D4D4"
             android:id="@+id/type_automatic"
             android:text="自动"
             android:layout_marginLeft="10dp"
@@ -23,12 +24,14 @@
             android:layout_height="wrap_content" />
         <Button
             android:id="@+id/lock_btn"
+            android:background="#D4D4D4"
             android:text="锁定"
             android:layout_marginLeft="10dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
         <Button
             android:id="@+id/type_matul_btn"
+            android:background="#D4D4D4"
             android:text="手动"
             android:layout_marginLeft="10dp"
             android:layout_width="wrap_content"

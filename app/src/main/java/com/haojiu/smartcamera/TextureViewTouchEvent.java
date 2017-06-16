@@ -37,38 +37,40 @@ public class TextureViewTouchEvent implements MyTextureView.MyTextureViewTouchEv
     public boolean onAreaTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                Rect rect = mCameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
-                Log.i("onAreaTouchEvent", "SENSOR_INFO_ACTIVE_ARRAY_SIZE,,,,,,,,rect.left--->" + rect.left + ",,,rect.top--->" + rect.top + ",,,,rect.right--->" + rect.right + ",,,,rect.bottom---->" + rect.bottom);
-                Size size = mCameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE);
-                Log.i("onAreaTouchEvent", "mCameraCharacteristics,,,,size.getWidth()--->" + size.getWidth() + ",,,size.getHeight()--->" + size.getHeight());
-                int areaSize = 100;
-                int right = rect.right;
-                int bottom = rect.bottom;
-                int viewWidth = mTextureView.getWidth();
-                int viewHeight = mTextureView.getHeight();
-                int ll, rr;
-                Rect newRect;
-                int centerX = (int) event.getX();
-                int centerY = (int) event.getY();
-                ll = ((centerX * right) - areaSize) / viewWidth;
-                rr = ((centerY * bottom) - areaSize) / viewHeight;
-                int focusLeft = clamp(ll, 0, right);
-                int focusBottom = clamp(rr, 0, bottom);
-                Log.i("focus_position", "focusLeft--->" + focusLeft + ",,,focusTop--->" + focusBottom + ",,,focusRight--->" + (focusLeft + areaSize) + ",,,focusBottom--->" + (focusBottom + areaSize));
-                newRect = new Rect(focusLeft, focusBottom, focusLeft + areaSize, focusBottom + areaSize);
-                MeteringRectangle meteringRectangle = new MeteringRectangle(newRect, 500);
-                MeteringRectangle[] meteringRectangleArr = {meteringRectangle};
-                mPreviewBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
-                mPreviewBuilder.set(CaptureRequest.CONTROL_AF_REGIONS, meteringRectangleArr);
-                mPreviewBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
-                mPreviewBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON);
-                mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
-                updatePreview();
+                onAreaTouchFunction((int) event.getX(),(int) event.getY());
                 break;
             case MotionEvent.ACTION_UP:
                 break;
         }
         return true;
+    }
+
+    public  void onAreaTouchFunction(int x,int y){
+        Rect rect = mCameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+        Log.i("onAreaTouchEvent", "SENSOR_INFO_ACTIVE_ARRAY_SIZE,,,,,,,,rect.left--->" + rect.left + ",,,rect.top--->" + rect.top + ",,,,rect.right--->" + rect.right + ",,,,rect.bottom---->" + rect.bottom);
+        Size size = mCameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_PIXEL_ARRAY_SIZE);
+        Log.i("onAreaTouchEvent", "mCameraCharacteristics,,,,size.getWidth()--->" + size.getWidth() + ",,,size.getHeight()--->" + size.getHeight());
+        int areaSize = 100;
+        int right = rect.right;
+        int bottom = rect.bottom;
+        int viewWidth = mTextureView.getWidth();
+        int viewHeight = mTextureView.getHeight();
+        int ll, rr;
+        Rect newRect;
+        ll = ((x * right) - areaSize) / viewWidth;
+        rr = ((y * bottom) - areaSize) / viewHeight;
+        int focusLeft = clamp(ll, 0, right);
+        int focusBottom = clamp(rr, 0, bottom);
+        Log.i("focus_position", "focusLeft--->" + focusLeft + ",,,focusTop--->" + focusBottom + ",,,focusRight--->" + (focusLeft + areaSize) + ",,,focusBottom--->" + (focusBottom + areaSize));
+        newRect = new Rect(focusLeft, focusBottom, focusLeft + areaSize, focusBottom + areaSize);
+        MeteringRectangle meteringRectangle = new MeteringRectangle(newRect, 500);
+        MeteringRectangle[] meteringRectangleArr = {meteringRectangle};
+        mPreviewBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+        mPreviewBuilder.set(CaptureRequest.CONTROL_AF_REGIONS, meteringRectangleArr);
+        mPreviewBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+        mPreviewBuilder.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON);
+        mPreviewBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
+        updatePreview();
     }
 
     /**

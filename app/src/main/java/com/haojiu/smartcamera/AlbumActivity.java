@@ -44,6 +44,7 @@ public class AlbumActivity extends Activity implements View.OnClickListener{
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);//设置成全屏模式
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//强制为横屏
         setContentView(R.layout.layout_album_activity);
+        ActivityCollector.addActivity(this);
         TextView title_text_title =  (TextView)findViewById(R.id.title_text_title);
         title_text_title.setText("相册");
         title_back_btn = (ImageView)findViewById(R.id.title_back_btn);
@@ -93,7 +94,11 @@ public class AlbumActivity extends Activity implements View.OnClickListener{
                 .bitmapConfig(Bitmap.Config.RGB_565)
                 .build();
     }
-
+    @Override
+    protected void onUserLeaveHint() {
+        ActivityCollector.finishAll();
+        super.onUserLeaveHint();
+    }
     @Override
     public void onClick(View view) {
         switch (view.getId()){

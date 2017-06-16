@@ -46,9 +46,14 @@ public class VideoSettingActivity extends Activity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);//设置成全屏模式
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//强制为横屏
         setContentView(R.layout.layout_video_setting);
+        ActivityCollector.addActivity(this);
         setView();
     }
-
+    @Override
+    protected void onUserLeaveHint() {
+        ActivityCollector.finishAll();
+        super.onUserLeaveHint();
+    }
     private void setView() {
         TextView title_text_title = (TextView)findViewById(R.id.title_text_title);
         title_text_title.setText("视频设置");

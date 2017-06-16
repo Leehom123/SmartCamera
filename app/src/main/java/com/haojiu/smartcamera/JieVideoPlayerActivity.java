@@ -32,6 +32,7 @@ public class JieVideoPlayerActivity extends Activity implements View.OnClickList
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);//设置成全屏模式
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//强制为横屏
         setContentView(R.layout.play);
+        ActivityCollector.addActivity(this);
         TextView title_text_title = (TextView)findViewById(R.id.title_text_title);
         ImageView title_back_btn = (ImageView)findViewById(R.id.title_back_btn);
         title_text_title.setOnClickListener(this);
@@ -56,7 +57,11 @@ public class JieVideoPlayerActivity extends Activity implements View.OnClickList
         mediaplay.prepare();
         mediaplay.start();
     }
-
+    @Override
+    protected void onUserLeaveHint() {
+        ActivityCollector.finishAll();
+        super.onUserLeaveHint();
+    }
     @Override
     public void onClick(View v) {
         switch (v.getId()){

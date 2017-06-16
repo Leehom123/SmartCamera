@@ -66,6 +66,7 @@ import android.preference.PreferenceScreen;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.Range;
 import android.util.Size;
@@ -97,6 +98,8 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import config.SystemConfig;
 
 
 /**
@@ -149,7 +152,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
     private ImageButton btn_luxiang;
     private ImageButton btn_xiangce;
     private ImageButton btn_disp;
-    int cTime = 1,cTime_luxiang,cTime_setting,cTime_spx ,cTime_cl, cTime_fd, cTime_splash,cTime_language,cTime_dir, seekTime = 0, seekTime2 = 0;
+    int cTime = 1,cTime_luxiang,cTime_setting,cTime_spx ,cTime_cl, cTime_fd, cTime_splash,cTime_language, seekTime = 0, seekTime2 = 0;
     private Timer timer, timer_type, timer_wb;
     private TimerTask task, task_type, task_wb;
     private CameraLine camera_line;
@@ -315,6 +318,10 @@ public class CameraActivity extends Activity implements SensorEventListener,View
     private TextView setting_second_state_bluetooth;
     private TextView setting_second_state_language;
     private String fileName;
+    private RelativeLayout mask;
+    private Button i_know_btn;
+    private RelativeLayout layout_handguide_zoom;
+    private RelativeLayout rl_camera;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -338,6 +345,12 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         es_text = (TextView) findViewById(R.id.es_text);
         mButton = (ImageButton) findViewById(R.id.picture);
         btn_iso = (ImageButton) findViewById(R.id.iso);
+
+        mask = (RelativeLayout)findViewById(R.id.mask);
+        i_know_btn = (Button)findViewById(R.id.i_know_btn_zoom);
+        layout_handguide_zoom = (RelativeLayout)findViewById(R.id.layout_handguide_zoom);
+        rl_camera = (RelativeLayout)findViewById(R.id.rl_camera);
+        i_know_btn.setOnClickListener(this);
 
 
         sb_ev = (SeekBar) findViewById(R.id.sb_ev);
@@ -394,6 +407,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         sb_zoom.setProgress(0);
         valueAE = 0;
         valueISO = 0;
+
         //button点击事件
         btn_luxiang.setOnClickListener(this);
         mButton.setOnClickListener(this);
@@ -421,7 +435,8 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         //重力水平线对象
         gSensitiveView = new GSensitiveView(getApplicationContext());
         fl_spx.addView(gSensitiveView);
-
+        //手势引导页
+        setMask();
     }
 
 //    @Override
@@ -446,7 +461,27 @@ public class CameraActivity extends Activity implements SensorEventListener,View
             }
         }
     };
+    /**
+     * 设置第一次进入时的蒙版
+     */
+    private void setMask() {
 
+        SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(
+                "Setting", Context.MODE_PRIVATE);
+        boolean isread =  sharedPreferences.getBoolean("read_share", false);
+        if(!isread){
+            // 调整顶部背景图片的大小，适应不同分辨率的屏幕
+            DisplayMetrics dm = new DisplayMetrics();
+            getWindowManager().getDefaultDisplay().getMetrics(dm);
+            int width = dm.widthPixels;
+            int height = (int) ((float) width / 48 *31);
+            mask.setVisibility(View.VISIBLE);
+            setBtnClickableFalse(false);
+        }else{
+            mask.setVisibility(View.GONE);
+            setBtnClickableFalse(true);
+        }
+    }
     /**
      * 打开相机
      * @param width  SurfaceTexture的宽
@@ -813,11 +848,37 @@ public class CameraActivity extends Activity implements SensorEventListener,View
 
     }
 
+    private void setBtnClickableFalse(boolean b){
+
+        btn_auto.setClickable(b);
+        btn_style.setClickable(b);
+        btn_wb.setClickable(b);
+        btn_iso.setClickable(b);
+        btn_ev.setClickable(b);
+        btn_zoom.setClickable(b);
+
+        btn_setting.setClickable(b);
+        btn_zipai.setClickable(b);
+        btn_luxiang.setClickable(b);
+        btn_xiangji.setClickable(b);
+        mButton.setClickable(b);
+        btn_disp.setClickable(b);
+        btn_xiangce.setClickable(b);
+
+        sb_ev.setClickable(b);
+        sb_zoom.setClickable(b);
+        rl_camera.setClickable(b);
+    }
     @Override
     public void onClick(View view) {
         SharedPreferences seekbar_value = getSharedPreferences("seekbar_value", Context.MODE_PRIVATE);
         mFocusImage.stopFocus();
         switch (view.getId()) {
+            case R.id.i_know_btn_zoom:
+                mask.setVisibility(View.GONE);
+                setBtnClickableFalse(true);
+                getApplicationContext().getSharedPreferences("Setting", Context.MODE_PRIVATE).edit().putBoolean("read_share", true).commit();
+                break;
             case R.id.picture:
                 showPopupWindow();
                 break;
@@ -905,40 +966,11 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 flag1 = true;
                 flag2 = true;
                 flag3 = true;
-                if (bansb_sewen==null || bansb_sediao==null){
-                    showWBPopWindow();
-                    mPopWindow.dismiss();
-                }
-                if (sb_jizhun==null || sb_kuaimen==null){
-                    showTypePopWindow();
-                    mPopWindow.dismiss();
-                }
-                if (bansb_iso==null){
-                    showIsoPopWindow();
-                    mPopWindow.dismiss();
-                }
-                bansb_sewen.banDrag(true);
-                bansb_sewen.banClick(true);
-                bansb_sediao.banDrag(true);
-                bansb_sediao.banClick(true);
-                bansb_sewen.setAlpha(0.3f);
-                bansb_sediao.setAlpha(0.3f);
-                sb_jizhun.banDrag(true);
-                sb_jizhun.banClick(true);
-                sb_kuaimen.banDrag(true);
-                sb_kuaimen.banClick(true);
-                bansb_iso.banDrag(true);
-                bansb_iso.banClick(true);
-                sb_jizhun.setAlpha(0.3f);
-                sb_kuaimen.setAlpha(0.3f);
-                bansb_iso.setAlpha(0.3f);
                 if (flag1 == true && flag2 == true && flag3 == true) {
                     btn_auto.setAlpha(0.3f);
                     timer = new Timer();
                     task = new TimerTask() {
-
                         private Integer ae;
-
                         @Override
                         public void run() {
                             Log.e("zx", "timer Auto.......");
@@ -957,7 +989,6 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                         }
                     };
                     timer.schedule(task, 500, 500);
-
                 }
                 break;
             case R.id.matul_btn://wb 手动按钮
@@ -968,6 +999,8 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 bansb_sediao.banClick(false);
                 bansb_sewen.setAlpha(1);
                 bansb_sediao.setAlpha(1);
+                automatic.setBackgroundColor(0xffD4D4D4);
+                matul_btn.setBackgroundColor(0xff646464);
                 if (flag1 == false || flag2 == false || flag3 == false) {
                     btn_auto.setAlpha(0.9f);
                     if (timer != null) {
@@ -986,6 +1019,8 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 bansb_sediao.banClick(true);
                 bansb_sewen.setAlpha(0.3f);
                 bansb_sediao.setAlpha(0.3f);
+                automatic.setBackgroundColor(0xff646464);
+                matul_btn.setBackgroundColor(0xffD4D4D4);
                 if (flag2 == true && flag3 == true) {
                     btn_auto.setAlpha(0.3f);
                     timer_wb = new Timer();
@@ -1009,6 +1044,8 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 sb_jizhun.setAlpha(0.3f);
                 sb_kuaimen.setAlpha(0.3f);
                 bansb_iso.setAlpha(0.3f);
+                type_automatic.setBackgroundColor(0xff646464);
+                type_matul_btn.setBackgroundColor(0xffD4D4D4);
                 if (flag1 == true && flag3 == true) {
                     btn_auto.setAlpha(0.3f);
                     timer_type = new Timer();
@@ -1022,6 +1059,10 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 }
                 break;
             case R.id.type_matul_btn://小太阳 里边的手动按钮
+                if (bansb_iso==null){
+                    showIsoPopWindow();
+                    mPopWindow.dismiss();
+                }
                 flag1 = false;
                 sb_jizhun.banDrag(false);
                 sb_jizhun.banClick(false);
@@ -1032,6 +1073,8 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 sb_jizhun.setAlpha(1);
                 sb_kuaimen.setAlpha(1);
                 bansb_iso.setAlpha(1);
+                type_automatic.setBackgroundColor(0xffD4D4D4);
+                type_matul_btn.setBackgroundColor(0xff646464);
                 if (flag1 == false || flag2 == false || flag3 == false) {
                     btn_auto.setAlpha(0.9f);
                     if (timer != null) {
@@ -1046,7 +1089,6 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 showTypePopWindow();
                 break;
             case R.id.iso:
-
                 showIsoPopWindow();
                 break;
             case R.id.wb:
@@ -1166,8 +1208,8 @@ public class CameraActivity extends Activity implements SensorEventListener,View
 
                 break;
             case R.id.layout_setting_handdirection_include:
-                cTime_dir++;
-                if (cTime_dir%2==1){
+                SystemConfig.handle_direction = !SystemConfig.handle_direction;
+                if (!SystemConfig.handle_direction){
                     if (cTime_language%2==1){
                         setting_second_state_dir.setText("opposite direction");
                     }else {
@@ -1587,6 +1629,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                                 super.onCaptureStarted(session, request, timestamp, frameNumber);
                                 updatePreview();//继续预览
                                 mPlayer.start();
+                                btn_xiangce.setClickable(false);
                             }
                             //在拍照完成时调用
                             @Override
@@ -1600,7 +1643,17 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                                 }
                                 // 最后通知图库更新
                                 getApplicationContext().sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.parse("file:///" + Environment.getExternalStorageDirectory() + "/SmartCamera/" + fileName)));
-
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            Thread.sleep(3000);
+                                            btn_xiangce.setClickable(true);
+                                        } catch (InterruptedException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }).start();
                             }
                         };
                         //停止连续取景
@@ -1747,6 +1800,18 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                 });
                 SharedPreferences preferences_key = getSharedPreferences("Key", Context.MODE_PRIVATE);
                 int key = preferences_key.getInt("Key", 0);
+                //get actual key value
+                if(!SystemConfig.handle_direction){
+                    if(key>=1 && key<=5){
+                        key += 5;
+                    }else if(key>=6 && key<=10){
+                        key -= 5;
+                    }
+                }
+
+
+
+
                 anTime = preferences_key.getInt("anTime", 0);//addTime
                 anTime1 = preferences_key.getInt("anTime1", 0);
                 if (key == 12) {
@@ -1789,6 +1854,20 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                         edit.putInt("anTime1", 0);
                         edit.commit();
                     }
+                }
+                if(key == 13){//半联动
+                    SharedPreferences.Editor edit = preferences_key.edit();
+                    edit.putInt("Key", 0);
+                    edit.commit();
+                    WindowManager wm = (WindowManager) getApplicationContext()
+                        .getSystemService(Context.WINDOW_SERVICE);
+                    int width = wm.getDefaultDisplay().getWidth();
+                    int height = wm.getDefaultDisplay().getHeight();
+                    Instrumentation mInst = new Instrumentation();
+                    mInst.sendPointerSync(MotionEvent.obtain(SystemClock.uptimeMillis(),
+                    SystemClock.uptimeMillis(), MotionEvent.ACTION_DOWN, width/2, height/2, 0));
+                    mInst.sendPointerSync(MotionEvent.obtain(SystemClock.uptimeMillis(),
+                    SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, width/2, height/2, 0));
                 }
                 if (key == 1 || key == 4) {//调小 左侧
                     progress = sb_ev.getProgress();
@@ -2224,7 +2303,6 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                             int time = 100 / all;
                             ae = ((i / time) - maxmax) > maxmax ? maxmax : ((i / time) - maxmax) < minmin ? minmin : ((i / time) - maxmax);
                             mPreviewRequestBuilder.set(CaptureRequest.CONTROL_AE_EXPOSURE_COMPENSATION, ae);
-
                             es_text.setText(ae + "");
                             updatePreview();//更新预览
                             edit.putInt("ev",i);
@@ -2334,9 +2412,17 @@ public class CameraActivity extends Activity implements SensorEventListener,View
                     ActivityCollector.finishAll();
                 }
                 break;
+
         }
 
         return super.onKeyUp(keyCode, event);
+    }
+
+
+    @Override
+    protected void onUserLeaveHint() {
+        ActivityCollector.finishAll();
+        super.onUserLeaveHint();
     }
 
     private void startRecordingVideo() {
@@ -2682,7 +2768,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
             }
         }
         /*手轮方向*/
-        if (cTime_dir%2==1){
+        if (!SystemConfig.handle_direction){
             if (cTime_language%2==1){
                 setting_second_state_dir.setText("opposite direction");
             }else {
@@ -2724,7 +2810,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
             }else {
                 text_fangdou.setText("closed");
             }
-            if (cTime_dir%2==1){
+            if (!SystemConfig.handle_direction){
                 setting_second_state_dir.setText("opposite direction");
             }else {
                 setting_second_state_dir.setText("forward direction");
@@ -2767,7 +2853,7 @@ public class CameraActivity extends Activity implements SensorEventListener,View
             }else {
                 text_fangdou.setText("已关闭");
             }
-            if (cTime_dir%2==1){
+            if (!SystemConfig.handle_direction){
                 setting_second_state_dir.setText("反向");
             }else {
                 setting_second_state_dir.setText("正向");
@@ -2805,6 +2891,11 @@ public class CameraActivity extends Activity implements SensorEventListener,View
         tv_iso = (TextView) contentView.findViewById(R.id.tv_iso);
         bansb_iso.setProgress(iso);
         tv_iso.setText(iso_text);
+        if (flag1==true){
+            bansb_iso.banDrag(true);
+            bansb_iso.banClick(true);
+            bansb_iso.setAlpha(0.3f);
+        }
         //显示PopupWindow
         View rootview = LayoutInflater.from(CameraActivity.this).inflate(R.layout.activity_camera, null);
         mPopWindow.showAtLocation(rootview, Gravity.CENTER, 0, 0);
@@ -2848,6 +2939,18 @@ public class CameraActivity extends Activity implements SensorEventListener,View
             matul_btn.setText("手动");
         }
 
+        if (flag2==true){
+            bansb_sewen.banDrag(true);
+            bansb_sewen.banClick(true);
+            bansb_sediao.banDrag(true);
+            bansb_sediao.banClick(true);
+            bansb_sewen.setAlpha(0.3f);
+            bansb_sediao.setAlpha(0.3f);
+            automatic.setBackgroundColor(0xff646464);
+        }else {
+            matul_btn.setBackgroundColor(0xff646464);
+        }
+
         //显示PopupWindow
         View rootview = LayoutInflater.from(CameraActivity.this).inflate(R.layout.activity_camera, null);
         mPopWindow.showAtLocation(rootview, Gravity.CENTER, 0, 0);
@@ -2880,10 +2983,10 @@ public class CameraActivity extends Activity implements SensorEventListener,View
 
         sb_kuaimen.setProgress(es);
         sb_buchang_type.setProgress(ev);
-        type_matul_btn.setOnClickListener(this);
-        type_automatic.setOnClickListener(this);
         sb_buchang_type.setOnBanSeekBarChangeListener(myBanSeekBarListener);
         sb_kuaimen.setOnBanSeekBarChangeListener(myBanSeekBarListener);
+        type_matul_btn.setOnClickListener(this);
+        type_automatic.setOnClickListener(this);
 
         if (cTime_language%2==1){
             //小太阳
@@ -2903,6 +3006,17 @@ public class CameraActivity extends Activity implements SensorEventListener,View
             type_automatic.setText("自动");
             type_matul_btn.setText("手动");
             lock_btn.setText("锁定");
+        }
+        if (flag1==true){
+            sb_jizhun.banDrag(true);
+            sb_jizhun.banClick(true);
+            sb_kuaimen.banDrag(true);
+            sb_kuaimen.banClick(true);
+            sb_jizhun.setAlpha(0.3f);
+            sb_kuaimen.setAlpha(0.3f);
+            type_automatic.setBackgroundColor(0xff646464);
+        }else {
+            type_matul_btn.setBackgroundColor(0xff646464);
         }
 
         //显示PopupWindow

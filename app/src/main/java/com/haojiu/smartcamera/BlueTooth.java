@@ -387,7 +387,11 @@ public class BlueTooth extends Activity {
         }
 
     };
-
+    @Override
+    protected void onUserLeaveHint() {
+        ActivityCollector.finishAll();
+        super.onUserLeaveHint();
+    }
     @Override
     protected void onDestroy() {
         super.onDestroy();

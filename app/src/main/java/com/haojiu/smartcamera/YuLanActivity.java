@@ -31,6 +31,7 @@ YuLanActivity extends Activity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);//设置成全屏模式
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);//强制为横屏
         setContentView(R.layout.layout_yulan_activity);
+        ActivityCollector.addActivity(this);
         TextView title_text_title = (TextView)findViewById(R.id.title_text_title);
         title_text_title.setText("相册");
         LinearLayout title_view_main = (LinearLayout)findViewById(R.id.title_view_main);
@@ -67,5 +68,9 @@ YuLanActivity extends Activity {
         });
     }
 
-
+    @Override
+    protected void onUserLeaveHint() {
+        ActivityCollector.finishAll();
+        super.onUserLeaveHint();
+    }
 }
